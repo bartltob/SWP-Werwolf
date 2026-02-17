@@ -1,10 +1,9 @@
 import { FaPlus, FaSignInAlt, FaCog } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import {useCreateRoom} from "../Hooks/useCreateRoom.ts";
 
 
 function MainPage() {
-
-    const navigate = useNavigate();
+    const { createRoom } = useCreateRoom();
 
     return (
         <div className="relative w-full min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white flex flex-col items-center justify-center px-6">
@@ -27,7 +26,7 @@ function MainPage() {
 
                 {/* Zimmer erstellen */}
                 <div className="bg-gray-800/70 backdrop-blur-md p-10 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border border-gray-700 hover:border-red-500"
-                onClick={() => navigate("/GamePage")}>
+                onClick={() => createRoom()}>
                     <div className="flex flex-col items-center text-center">
                         <FaPlus size={45} className="text-red-500 mb-4" />
                         <h2 className="text-2xl font-bold mb-2">Zimmer erstellen</h2>

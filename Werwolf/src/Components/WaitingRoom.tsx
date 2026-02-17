@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, Crown, Copy, LogOut, Moon, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -7,21 +7,27 @@ import { useNavigate } from "react-router-dom";
 
 export default function WaitingRoom() {
 
+    const [roomKey, setRoomKey] = useState<string | null>(null);
+
+    useEffect(() => {
+        const key = localStorage.getItem('roomKey');
+        setRoomKey(key);
+    }, []);
 
     const [players] = useState([
         { id: 1, name: "Meister", host: true },
         { id: 2, name: "ShadowWolf", host: false },
         { id: 3, name: "NightHunter", host: false },
         { id: 4, name: "SilentClaw", host: false },
-        { id: 4, name: "SilentClaw", host: false },
-        { id: 4, name: "SilentClaw", host: false },
-        { id: 4, name: "SilentClaw", host: false },
+        { id: 5, name: "SilentClaw", host: false },
+        { id: 6, name: "SilentClaw", host: false },
+        { id: 7, name: "SilentClaw", host: false },
     ]);
 
     const [copied, setCopied] = useState(false);
 
     const navigate = useNavigate();
-    const roomCode = "WOLF-4721";
+    const roomCode = roomKey || "Loading...";
 
     const handleCopy = async () => {
         try {
