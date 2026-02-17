@@ -1,17 +1,26 @@
 import { useState } from "react";
 import { Users, Crown, Copy, LogOut, Moon, Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+
 
 export default function WaitingRoom() {
+
+
     const [players] = useState([
         { id: 1, name: "Meister", host: true },
         { id: 2, name: "ShadowWolf", host: false },
         { id: 3, name: "NightHunter", host: false },
         { id: 4, name: "SilentClaw", host: false },
+        { id: 4, name: "SilentClaw", host: false },
+        { id: 4, name: "SilentClaw", host: false },
+        { id: 4, name: "SilentClaw", host: false },
     ]);
 
     const [copied, setCopied] = useState(false);
 
+    const navigate = useNavigate();
     const roomCode = "WOLF-4721";
 
     const handleCopy = async () => {
@@ -45,7 +54,7 @@ export default function WaitingRoom() {
                             </div>
                         </div>
 
-                        <button className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 transition px-4 py-2 rounded-xl text-sm">
+                        <button onClick={() => navigate("/")} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 transition px-4 py-2 rounded-xl text-sm">
                             <LogOut size={16} />
                             Leave
                         </button>
