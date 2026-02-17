@@ -9,7 +9,6 @@ export const useCreateRoom = () => {
     await set(roomRef, {
       created_at: new Date().toISOString(),
       players: {},
-      status: 'waiting',
     });
 
     localStorage.setItem('roomKey', String(roomKey));
