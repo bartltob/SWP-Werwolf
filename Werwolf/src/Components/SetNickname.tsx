@@ -1,48 +1,67 @@
 import { useState } from "react";
+import { ref, push, set } from "firebase/database";
+import { db } from "../firebase-config";
 
 interface Props {
-    onSubmit: (nickname: string) => void;
+    roomKey: string;
+    onSuccess: (nickname: string) => void;
 }
 
-export default function SetNickname({onSubmit}: Props) {
+export default function SetNickname({ roomKey, onSuccess }: Props) {
     const [nickname, setNickname] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (nickname.trim() === "") return;
-        onSubmit(nickname.trim());
-    }
+
+        try {
+            setLoading(true);
+
+            const playersRef = ref(db, `rooms/${roomKey}/players`);
+            const newPlayerRef = push(playersRef);
+
+            await set(newPlayerRef, {
+                id: newPlayerRef.key,
+                nickname: nickname.trim(),
+                host: false,
+            });
+
+            localStorage.setItem("playerId", String(newPlayerRef.key));
+
+            onSuccess(nickname.trim());
+
+        } catch (err) {
+            console.error("Error saving nickname:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white px-6">
+        <div className="min-h-screen flex items-center justify-center bg-black text-white">
+            <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-700 w-full max-w-md">
 
-            <div className="w-full max-w-md bg-gray-800/60 backdrop-blur-md p-10 rounded-2xl shadow-2xl border border-gray-700">
-
-                {/* Titel */}
-                <h1 className="text-3xl font-bold text-center mb-2">
-                    🐺 Willkommen
+                <h1 className="text-2xl font-bold mb-6 text-center">
+                    🐺 Enter Your Nickname
                 </h1>
-                <p className="text-gray-400 text-center mb-8">
-                    Wähle deinen Namen für das Spiel
-                </p>
 
-                {/* Input */}
                 <input
                     type="text"
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
-                    placeholder="Dein Nickname..."
-                    className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 focus:border-red-500 focus:ring-2 focus:ring-red-500 outline-none transition-all duration-300 text-white placeholder-gray-500"
+                    placeholder="Nickname..."
+                    className="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-600 focus:border-red-500 outline-none"
                 />
 
-                {/* Button */}
                 <button
-                   onClick={handleSubmit} className="mt-6 w-full bg-red-600 hover:bg-red-700 transition-all duration-300 py-3 rounded-xl font-semibold shadow-lg hover:shadow-red-600/40"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="mt-6 w-full bg-red-600 hover:bg-red-700 py-3 rounded-xl font-semibold transition"
                 >
-                    Weiter
+                    {loading ? "Saving..." : "Continue"}
                 </button>
 
             </div>
-
         </div>
     );
 }

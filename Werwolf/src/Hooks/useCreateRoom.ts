@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ref, set } from 'firebase/database';
+import { ref, set} from 'firebase/database';
 import { db } from '../firebase-config';
 
 export const useCreateRoom = () => {
@@ -12,10 +12,9 @@ export const useCreateRoom = () => {
     await set(roomRef, {
       created_at: new Date().toISOString(),
       players: {},
-      status: 'waiting',
     });
 
-    localStorage.setItem('roomKey', String(roomKey));
+      localStorage.setItem('roomKey', String(roomKey));
 
     navigate('/GamePage');
   };
