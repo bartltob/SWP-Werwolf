@@ -1,11 +1,16 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+
+import {Route, Routes} from "react-router-dom";
+import MainPage from "./pages/MainPage.tsx";
+
 
 function App() {
 
     return (
-        <h1 className="bg-amber-100">hello</h1>
+       <main>
+           <Routes>
+               <Route path="/" element={<MainPage />} />
+           </Routes>
+       </main>
     )
 }
 export default App;
