@@ -10,7 +10,7 @@ function MainPage() {
     const [showNickname, setShowNickname] = useState(false);
 
 
-    if (showNickname) return <SetNickname />;
+    if (showNickname) return <SetNickname newRoom={true} />;
 
     return (
         <div className="relative w-full min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white flex flex-col items-center justify-center px-6">

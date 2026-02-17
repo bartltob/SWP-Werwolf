@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { ref, push, set } from "firebase/database";
 import { db } from "../firebase-config";
-import {useCreateRoom} from "../Hooks/useCreateRoom.ts";
+import { useCreateRoom } from "../Hooks/useCreateRoom.ts";
+import { useNavigate } from "react-router-dom";
 
-export default function SetNickname (){
+type Props = {
+    newRoom: boolean;
+};
+
+export default function SetNickname ({newRoom}: Props) {
     const [nickname, setNickname] = useState("");
     const [loading, setLoading] = useState(false);
     const { createRoom } = useCreateRoom();
+    const navigate = useNavigate();
 
     const handleSubmit = async () => {
         if (nickname.trim() === "") return;
@@ -14,20 +20,21 @@ export default function SetNickname (){
         try {
             setLoading(true);
 
-            await createRoom();
+            if (newRoom) await createRoom();
             const roomKey = localStorage.getItem("roomKey");
+            if (!roomKey) throw new Error("Missing roomKey");
+
             const playersRef = ref(db, `rooms/${roomKey}/players`);
             const newPlayerRef = push(playersRef);
 
             await set(newPlayerRef, {
                 id: newPlayerRef.key,
                 nickname: nickname.trim(),
-                host: false,
+                host: newRoom,
             });
 
             localStorage.setItem("playerId", String(newPlayerRef.key));
-
-
+            navigate("/GamePage");
         } catch (err) {
             console.error("Error saving nickname:", err);
         } finally {

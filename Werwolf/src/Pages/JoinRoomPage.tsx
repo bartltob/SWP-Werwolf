@@ -3,13 +3,13 @@ import { motion } from "framer-motion";
 import { DoorOpen, ArrowRight } from "lucide-react";
 import { ref, get } from "firebase/database";
 import { db } from "../firebase-config.ts";
-import { useNavigate } from "react-router-dom";
+import SetNickname from "../Components/SetNickname.tsx";
 
 export default function JoinRoomPage() {
     const [roomCode, setRoomCode] = useState("");
     const [errors, setErrors] = useState({roomCode: "" });
+    const [showNickname, setShowNickname] = useState(false);
 
-    const navigate = useNavigate();
 
     const handleJoin = () => {
         let validRoom = true;
@@ -28,8 +28,9 @@ export default function JoinRoomPage() {
                 .then((snapshot: { exists: () => any }) => {
                     if (snapshot.exists()) {
                         localStorage.setItem('roomKey', roomCode);
-                        navigate('/GamePage');
-                    } else {
+                        setShowNickname(true);
+
+                } else {
                         setErrors(prev => ({ ...prev, roomCode: "Room not found. Please check the code." }));
                     }
                 })
@@ -40,6 +41,7 @@ export default function JoinRoomPage() {
         }
     };
 
+    if (showNickname) return <SetNickname newRoom={false} />;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-black flex items-center justify-center p-6 text-white">
