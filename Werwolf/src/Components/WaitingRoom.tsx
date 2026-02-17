@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import { Users, Crown, Copy, LogOut, Moon, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import SetNickname from "./SetNickname";
 import { ref, onValue } from "firebase/database";
 import { db } from "../firebase-config";
 
 export default function WaitingRoom() {
 
-    const [nickname, setNickname] = useState<string | null>(null);
+    const [nickname] = useState<string | null>(null);
     const [roomKey, setRoomKey] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<any[]>([]);
@@ -58,17 +57,6 @@ export default function WaitingRoom() {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
-
-    if (!nickname && roomKey) {
-        return (
-            <SetNickname
-                roomKey={roomKey}
-                onSuccess={(nickname) => {
-                    setNickname(nickname);
-                }}
-            />
-        );
-    }
 
 
     return (

@@ -7,13 +7,13 @@ import { useNavigate } from "react-router-dom";
 
 export default function JoinRoomPage() {
     const [roomCode, setRoomCode] = useState("");
-    const [errors, setErrors] = useState({ username: "", roomCode: "" });
+    const [errors, setErrors] = useState({roomCode: "" });
 
     const navigate = useNavigate();
 
     const handleJoin = () => {
         let validRoom = true;
-        const newErrors = { username: "", roomCode: "" };
+        const newErrors = {roomCode: "" };
 
         if (!/^[0-9]{6}$/.test(roomCode)) {
             newErrors.roomCode = "Room code must be exactly 6 digits.";

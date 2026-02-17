@@ -1,9 +1,16 @@
 import { FaPlus, FaSignInAlt, FaCog } from "react-icons/fa";
-import {useCreateRoom} from "../Hooks/useCreateRoom.ts";
+
+import {useNavigate} from "react-router-dom";
+import SetNickname from "../Components/SetNickname.tsx";
+import {useState} from "react";
 
 
 function MainPage() {
-    const { createRoom } = useCreateRoom();
+    const navigate = useNavigate();
+    const [showNickname, setShowNickname] = useState(false);
+
+
+    if (showNickname) return <SetNickname />;
 
     return (
         <div className="relative w-full min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white flex flex-col items-center justify-center px-6">
@@ -26,7 +33,7 @@ function MainPage() {
 
                 {/* Zimmer erstellen */}
                 <div className="bg-gray-800/70 backdrop-blur-md p-10 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border border-gray-700 hover:border-red-500"
-                onClick={() => createRoom()}>
+                onClick={() => setShowNickname(true)}>
                     <div className="flex flex-col items-center text-center">
                         <FaPlus size={45} className="text-red-500 mb-4" />
                         <h2 className="text-2xl font-bold mb-2">Zimmer erstellen</h2>
@@ -37,7 +44,7 @@ function MainPage() {
                 </div>
 
                 {/* Spiel beitreten */}
-                <div className="bg-gray-800/70 backdrop-blur-md p-10 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border border-gray-700 hover:border-purple-500">
+                <div onClick={() => navigate("/JoinRoom")} className="bg-gray-800/70 backdrop-blur-md p-10 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border border-gray-700 hover:border-purple-500">
                     <div className="flex flex-col items-center text-center">
                         <FaSignInAlt size={45} className="text-purple-500 mb-4" />
                         <h2 className="text-2xl font-bold mb-2">Spiel beitreten</h2>

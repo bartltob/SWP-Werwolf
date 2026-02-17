@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { ref, push, set } from "firebase/database";
 import { db } from "../firebase-config";
+import {useCreateRoom} from "../Hooks/useCreateRoom.ts";
 
-interface Props {
-    roomKey: string;
-    onSuccess: (nickname: string) => void;
-}
-
-export default function SetNickname({ roomKey, onSuccess }: Props) {
+export default function SetNickname (){
     const [nickname, setNickname] = useState("");
     const [loading, setLoading] = useState(false);
+    const { createRoom } = useCreateRoom();
 
     const handleSubmit = async () => {
         if (nickname.trim() === "") return;
@@ -17,6 +14,8 @@ export default function SetNickname({ roomKey, onSuccess }: Props) {
         try {
             setLoading(true);
 
+            await createRoom();
+            const roomKey = localStorage.getItem("roomKey");
             const playersRef = ref(db, `rooms/${roomKey}/players`);
             const newPlayerRef = push(playersRef);
 
@@ -28,7 +27,6 @@ export default function SetNickname({ roomKey, onSuccess }: Props) {
 
             localStorage.setItem("playerId", String(newPlayerRef.key));
 
-            onSuccess(nickname.trim());
 
         } catch (err) {
             console.error("Error saving nickname:", err);
