@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ref, onValue } from "firebase/database";
 import { db } from "../firebase-config";
+import { useRemovePlayer } from "../Hooks/useRemovePlayer.ts";
 
 export default function WaitingRoom() {
 
@@ -12,6 +13,7 @@ export default function WaitingRoom() {
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<any[]>([]);
 
+    const { removePlayer } = useRemovePlayer();
 
     const navigate = useNavigate();
 
@@ -47,7 +49,7 @@ export default function WaitingRoom() {
         if (key) {
             setRoomKey(key);
         } else {
-            navigate("/"); // Falls kein Room existiert → zurück
+            navigate("/");
         }
     }, [navigate]);
 
@@ -85,7 +87,10 @@ export default function WaitingRoom() {
                         </div>
 
                         <button
-                            onClick={() => navigate("/")}
+                            onClick={() => {
+                            removePlayer().then(() => navigate("/"));
+                        }}
+
                             className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 transition px-4 py-2 rounded-xl text-sm"
                         >
                             <LogOut size={16} />
