@@ -8,10 +8,12 @@ import { useRemovePlayer } from "../Hooks/useRemovePlayer.ts";
 
 export default function WaitingRoom() {
 
-    const [nickname] = useState<string | null>(null);
     const [roomKey, setRoomKey] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<any[]>([]);
+
+    const playerId = localStorage.getItem("playerId");
+    const currentPlayer = players.find(p => String(p.id) === String(playerId)) || null;
 
     const { removePlayer } = useRemovePlayer();
 
@@ -80,9 +82,6 @@ export default function WaitingRoom() {
                                 <h1 className="text-2xl font-bold tracking-wide">
                                     Werewolf Lobby
                                 </h1>
-                                <p className="text-zinc-400 text-sm">
-                                    Willkommen, {nickname}
-                                </p>
                             </div>
                         </div>
 
@@ -144,9 +143,15 @@ export default function WaitingRoom() {
                             </button>
                         </div>
                     </div>
-
-                    <button className="w-full py-4 rounded-2xl text-lg font-semibold bg-gradient-to-r from-red-700 via-red-600 to-red-700 hover:scale-[1.02] transition transform shadow-lg">
-                        Start Game
+                    <button
+                        disabled={!currentPlayer?.host}
+                        className={`w-full py-4 rounded-2xl text-lg font-semibold transition transform shadow-lg ${
+                            currentPlayer?.host
+                                ? "bg-gradient-to-r from-red-700 via-red-600 to-red-700 hover:scale-[1.02]"
+                                : "bg-zinc-700 cursor-not-allowed opacity-60"
+                        }`}
+                    >
+                        {currentPlayer?.host ? "Start Game" : "Waiting for host..."}
                     </button>
                 </div>
             </motion.div>

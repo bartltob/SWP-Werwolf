@@ -1,5 +1,4 @@
 import { FaPlus, FaSignInAlt, FaCog } from "react-icons/fa";
-
 import {useNavigate} from "react-router-dom";
 import SetNickname from "../Components/SetNickname.tsx";
 import {useState} from "react";
