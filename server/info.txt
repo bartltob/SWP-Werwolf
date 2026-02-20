@@ -1,2 +1,3 @@
 Ist nur eine Kopie vom eigentlichem Server.
 Der Datei liegt auf Haggis Schulserver <3
+und der serviceAccountKey.json wird nicht committet, weil scheiß sicherheit :D
