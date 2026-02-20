@@ -1,19 +1,30 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { DoorOpen, ArrowRight } from "lucide-react";
 import { ref, get } from "firebase/database";
-import { db } from "../firebase-config.ts";
-import SetNickname from "../Components/SetNickname.tsx";
+import { db } from "../firebase-config";
+import SetNickname from "../Components/SetNickname";
+import Background from "../Components/Frontend/Background";
+
+import { Card, Divider } from "../Components/Frontend/Decorations";
+import HeaderBlock from "../Components/Frontend/HeaderBlock";
+import TextInput from "../Components/Frontend/TextInput";
+import PrimaryButton from "../Components/Frontend/PrimaryButton";
+import { CornerOrnaments } from "../Components/Frontend/Decorations";
+
+const accentHex = "#9b59f5";
+const glowRgba = "rgba(155,89,245,0.6)";
+const glowSoft = "rgba(155,89,245,0.2)";
 
 export default function JoinRoomPage() {
     const [roomCode, setRoomCode] = useState("");
-    const [errors, setErrors] = useState({roomCode: "" });
+    const [errors, setErrors] = useState({ roomCode: "" });
     const [showNickname, setShowNickname] = useState(false);
-
+    const [focused, setFocused] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleJoin = () => {
         let validRoom = true;
-        const newErrors = {roomCode: "" };
+        const newErrors = { roomCode: "" };
 
         if (!/^[0-9]{6}$/.test(roomCode)) {
             newErrors.roomCode = "Room code must be exactly 6 digits.";
@@ -23,72 +34,91 @@ export default function JoinRoomPage() {
         setErrors(newErrors);
 
         if (validRoom) {
-            const docRef = ref(db, 'rooms/' + roomCode);
+            setLoading(true);
+            const docRef = ref(db, "rooms/" + roomCode);
             get(docRef)
-                .then((snapshot: { exists: () => any }) => {
+                .then((snapshot) => {
                     if (snapshot.exists()) {
-                        localStorage.setItem('roomKey', roomCode);
+                        localStorage.setItem("roomKey", roomCode);
                         setShowNickname(true);
-
-                } else {
-                        setErrors(prev => ({ ...prev, roomCode: "Room not found. Please check the code." }));
+                    } else {
+                        setErrors((prev) => ({ ...prev, roomCode: "Room not found. Please check the code." }));
                     }
                 })
-                .catch((error: any) => {
+                .catch((error) => {
                     console.error("Error fetching room data:", error);
-                    setErrors(prev => ({ ...prev, roomCode: "An error occurred. Please try again." }));
-                });
+                    setErrors((prev) => ({ ...prev, roomCode: "An error occurred. Please try again." }));
+                })
+                .finally(() => setLoading(false));
         }
     };
 
     if (showNickname) return <SetNickname newRoom={false} />;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-black flex items-center justify-center p-6 text-white">
+        <div className="relative w-full min-h-screen text-white flex items-center justify-center px-6 overflow-hidden"
+             style={{ background: "#060410", fontFamily: "'Cinzel', Georgia, serif" }}>
+
+            <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&display=swap');`}</style>
+
+            <Background />
+
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="w-full max-w-md bg-zinc-900/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-zinc-700 p-8 space-y-6"
+                initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                className="relative z-10 w-full max-w-md"
             >
-                {/* Header */}
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-zinc-800 rounded-2xl">
-                        <DoorOpen size={26} />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold">Join a Room</h1>
-                        <p className="text-sm text-zinc-400">Enter the room code to join the game</p>
-                    </div>
-                </div>
+                <Card accentHex={accentHex} glowRgba={glowRgba}>
+                    <CornerOrnaments accentHex={accentHex} />
 
-                {/* Form */}
-                <div className="space-y-4">
-                    <div className="space-y-1">
-                        <label className="text-sm text-zinc-400">Room Code</label>
-                        <input
-                            type="text"
-                            placeholder="000000"
+                    {/* Subtle top glow */}
+                    <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accentHex}66, transparent)` }} />
+
+                    {/* Header */}
+                    <HeaderBlock icon={"🌙"} title={"Join Room"} subtitle={"Enter the 6-digit code"} titleGradient={"linear-gradient(180deg, #e8d8ff 0%, #b57bf5 40%, #6a2fbf 100%)"} accentHex={accentHex} />
+
+                    {/* Divider */}
+                    <Divider accentHex={accentHex} />
+
+                    {/* Input */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(180,140,80,0.5)" }}>
+                            Room Code
+                        </label>
+                        <TextInput
                             value={roomCode}
-                            maxLength={6}
                             onChange={(e) => {
-                                const numericValue = e.target.value.replace(/\D/g, '');
+                                const numericValue = e.target.value.replace(/\D/g, "");
                                 if (numericValue.length <= 6) setRoomCode(numericValue);
+                                setErrors({ roomCode: "" });
                             }}
-                            className={`w-full bg-zinc-800 border rounded-xl px-4 py-3 outline-none focus:border-zinc-500 transition tracking-widest text-center font-semibold ${errors.roomCode ? 'border-red-500' : 'border-zinc-700'}`}
+                            onFocus={() => setFocused(true)}
+                            onBlur={() => setFocused(false)}
+                            onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+                            placeholder={"000000"}
+                            maxLength={6}
+                            focused={focused}
+                            accentHex={accentHex}
+                            glowSoft={glowSoft}
                         />
-                        {errors.roomCode && <p className="text-xs text-red-500 mt-1">{errors.roomCode}</p>}
+                        {errors.roomCode && (
+                            <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-xs tracking-wide mt-1" style={{ color: "#e85d20", fontFamily: "Georgia, serif" }}>
+                                <span className="inline-block w-1 h-1 rounded-full bg-current mr-2" />{errors.roomCode}
+                            </motion.p>
+                        )}
                     </div>
-                </div>
 
-                {/* Join Button */}
-                <button
-                    onClick={handleJoin}
-                    className="w-full py-4 rounded-2xl text-lg font-semibold bg-gradient-to-r from-red-700 via-red-600 to-red-700 hover:scale-[1.02] transition transform shadow-lg flex items-center justify-center gap-2"
-                >
-                    Join Game
-                    <ArrowRight size={18} />
-                </button>
+                    {/* Submit */}
+                    <PrimaryButton onClick={handleJoin} disabled={loading || roomCode.length !== 6} accentHex={accentHex} glowRgba={glowRgba}>
+                        {loading ? "Searching the Night..." : "Enter the Hunt →"}
+                    </PrimaryButton>
+
+                    {/* Footer */}
+                    <p className="text-center text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(100,70,40,0.4)", fontFamily: "Georgia, serif", fontStyle: "italic" }}>
+                        ⚔ the night awaits ⚔
+                    </p>
+                </Card>
             </motion.div>
         </div>
     );

@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
 import { ref, push, set } from "firebase/database";
 import { db } from "../firebase-config";
-import { useCreateRoom } from "../Hooks/useCreateRoom.ts";
+import { useCreateRoom } from "../Hooks/useCreateRoom";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import Background from "./Frontend/Background";
+import { Card, Divider, CornerOrnaments, CharCount } from "./Frontend/Decorations";
+import HeaderBlock from "./Frontend/HeaderBlock";
+import TextInput from "./Frontend/TextInput";
+import PrimaryButton from "./Frontend/PrimaryButton";
 
 type Props = {
     newRoom: boolean;
 };
 
-export default function SetNickname ({newRoom}: Props) {
+export default function SetNickname({ newRoom }: Props) {
     const [nickname, setNickname] = useState("");
     const [loading, setLoading] = useState(false);
+    const [focused, setFocused] = useState(false);
     const { createRoom } = useCreateRoom();
     const navigate = useNavigate();
 
@@ -30,7 +37,12 @@ export default function SetNickname ({newRoom}: Props) {
 
             if (newRoom) await createRoom();
             const roomKey = localStorage.getItem("roomKey");
-            if (!roomKey) throw new Error("Missing roomKey");
+            if (!roomKey) {
+                console.error("Missing roomKey after create/join");
+                // navigate back to home so user can retry
+                navigate("/");
+                return;
+            }
 
             const playersRef = ref(db, `rooms/${roomKey}/players`);
             const newPlayerRef = push(playersRef);
@@ -51,31 +63,91 @@ export default function SetNickname ({newRoom}: Props) {
         }
     };
 
+    const isRed = newRoom;
+    const accentHex = isRed ? "#e85d20" : "#9b59f5";
+    const glowRgba = isRed ? "rgba(232,93,32,0.6)" : "rgba(155,89,245,0.6)";
+    const glowSoft = isRed ? "rgba(232,93,32,0.2)" : "rgba(155,89,245,0.2)";
+    const titleGradient = isRed
+        ? "linear-gradient(180deg, #fff8dc 0%, #f5c842 40%, #c8701a 100%)"
+        : "linear-gradient(180deg, #e8d8ff 0%, #b57bf5 40%, #6a2fbf 100%)";
+
     return (
-        <div className="min-h-screen flex items-center justify-center bg-black text-white">
-            <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-700 w-full max-w-md">
+        <div className="relative w-full min-h-screen text-white flex items-center justify-center px-6 overflow-hidden"
+             style={{ background: "#060410", fontFamily: "'Cinzel', Georgia, serif" }}>
 
-                <h1 className="text-2xl font-bold mb-6 text-center">
-                    🐺 Enter Your Nickname
-                </h1>
+            <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&display=swap');`}</style>
 
-                <input
-                    type="text"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    placeholder="Nickname..."
-                    className="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-600 focus:border-red-500 outline-none"
-                />
+            {/* Background untouched */}
+            <Background />
 
-                <button
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    className="mt-6 w-full bg-red-600 hover:bg-red-700 py-3 rounded-xl font-semibold transition"
-                >
-                    {loading ? "Saving..." : "Continue"}
-                </button>
+            {/* Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                className="relative z-10 w-full max-w-md"
+            >
+                <Card accentHex={accentHex} glowRgba={glowRgba}>
+                    <CornerOrnaments accentHex={accentHex} />
 
-            </div>
+                    {/* Subtle inner glow top */}
+                    <div className="absolute top-0 left-0 right-0 h-px"
+                         style={{ background: `linear-gradient(90deg, transparent, ${accentHex}66, transparent)` }} />
+
+                    {/* Header */}
+                    <HeaderBlock icon={newRoom ? "🔥" : "🌙"} title={newRoom ? "Create Room" : "Join Room"} subtitle="Choose your name" titleGradient={titleGradient} accentHex={accentHex} />
+
+                    {/* Divider */}
+                    <Divider accentHex={accentHex} />
+
+                    {/* Input */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs tracking-[0.1em] uppercase"
+                               style={{ color: "rgba(180,140,80,0.5)" }}>
+                            Nickname
+                        </label>
+                        <div className="relative text-sm ">
+                            <TextInput
+                                value={nickname}
+                                onChange={(e) => setNickname(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                                onFocus={() => setFocused(true)}
+                                onBlur={() => setFocused(false)}
+                                placeholder="Enter your name..."
+                                maxLength={20}
+                                focused={focused}
+                                accentHex={accentHex}
+                                glowSoft={glowSoft}
+                            />
+
+                            <CharCount count={nickname.length} />
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <PrimaryButton onClick={handleSubmit} disabled={loading || nickname.trim() === ""} accentHex={accentHex} glowRgba={glowRgba}>
+                        {loading ? (
+                            <span className="flex items-center justify-center gap-3">
+                                <motion.span
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    className="inline-block w-4 h-4 rounded-full border-2 border-transparent"
+                                    style={{ borderTopColor: accentHex }}
+                                />
+                                Entering the Night...
+                            </span>
+                        ) : (
+                            "Enter the Night →"
+                        )}
+                    </PrimaryButton>
+
+                    {/* Footer */}
+                    <p className="text-center text-xs tracking-[0.3em] uppercase"
+                       style={{ color: "rgba(100,70,40,0.4)", fontFamily: "Georgia, serif", fontStyle: "italic" }}>
+                        ⚔ the night awaits ⚔
+                    </p>
+                </Card>
+            </motion.div>
         </div>
     );
 }
