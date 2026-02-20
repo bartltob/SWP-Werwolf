@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ref, push, set } from "firebase/database";
 import { db } from "../firebase-config";
 import { useCreateRoom } from "../Hooks/useCreateRoom.ts";
@@ -13,6 +13,14 @@ export default function SetNickname ({newRoom}: Props) {
     const [loading, setLoading] = useState(false);
     const { createRoom } = useCreateRoom();
     const navigate = useNavigate();
+
+    // If player already exists, skip to GamePage
+    useEffect(() => {
+        const existingPlayerId = localStorage.getItem("playerId");
+        if (existingPlayerId) {
+            navigate("/GamePage");
+        }
+    }, [navigate]);
 
     const handleSubmit = async () => {
         if (nickname.trim() === "") return;
@@ -31,6 +39,7 @@ export default function SetNickname ({newRoom}: Props) {
                 id: newPlayerRef.key,
                 nickname: nickname.trim(),
                 host: newRoom,
+                status: "online",
             });
 
             localStorage.setItem("playerId", String(newPlayerRef.key));

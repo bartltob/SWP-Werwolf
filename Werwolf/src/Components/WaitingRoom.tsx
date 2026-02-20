@@ -111,11 +111,20 @@ export default function WaitingRoom() {
                                 <motion.div
                                     key={player.id}
                                     whileHover={{ scale: 1.02 }}
-                                    className="flex items-center justify-between bg-zinc-900 rounded-xl px-4 py-3 border border-zinc-700"
+                                    className={`flex items-center justify-between rounded-xl px-4 py-3 border transition ${
+                                        player.status === "disconnected"
+                                            ? "bg-zinc-800/50 border-zinc-600 opacity-60"
+                                            : "bg-zinc-900 border-zinc-700"
+                                    }`}
                                 >
-                                    <span className="font-medium">
-                                        {player.nickname}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-medium">
+                                            {player.nickname}
+                                        </span>
+                                        {player.status === "disconnected" && (
+                                            <span className="text-xs text-zinc-400">(disconnected)</span>
+                                        )}
+                                    </div>
                                     {player.host && (
                                         <span className="flex items-center gap-1 text-yellow-400 text-xs">
                                             <Crown size={14} /> Host
