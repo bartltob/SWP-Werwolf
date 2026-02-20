@@ -140,7 +140,7 @@ export default function WaitingRoom() {
                                     animate={{ opacity: [0.3, 0.6, 0.3] }}
                                     transition={{ duration: 2, repeat: Infinity }}
                                     className="flex items-center justify-center px-4 py-3 rounded-xl"
-                                    style={{ border: "1px dashed rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.2)", fontSize: "0.75rem", letterSpacing: "0.2em" }}
+                                    style={{ border: "1px solid rgba(150,150,200,0.8)", color: "rgba(255,255,200)", fontSize: "0.75rem", letterSpacing: "0.2em" }}
                                 >
                                     Waiting for players...
                                 </motion.div>
@@ -155,7 +155,7 @@ export default function WaitingRoom() {
                         <Card accentHex={purpleHex} glowRgba={purpleGlow}>
                             <CornerOrnaments accentHex={purpleHex} />
 
-                            <p className="text-sm tracking-[0.3em] uppercase" style={{ color: "rgba(180,140,80,0.5)" }}>
+                            <p className="text-sm tracking-[0.3em] uppercase" style={{ color: "rgba(200,200,200)" }}>
                                 Room Code
                             </p>
 
@@ -172,7 +172,7 @@ export default function WaitingRoom() {
                                 </motion.p>
                             )}
 
-                            <p className="text-xs tracking-wide text-center" style={{ color: "rgba(180,140,80,0.35)", fontStyle: "italic" }}>
+                            <p className="text-xs tracking-wide text-center" style={{ color: "rgba(200,200,200,0.35)", fontStyle: "italic" }}>
                                 Share this code with your pack
                             </p>
                         </Card>
@@ -183,7 +183,7 @@ export default function WaitingRoom() {
                         </PrimaryButton>
 
                         {/* Footer */}
-                        <p className="text-center text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(100,70,40,0.4)", fontStyle: "italic" }}>
+                        <p className="text-center text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(200,200,200,0.4)", fontStyle: "italic" }}>
                             ⚔ the hunt begins ⚔
                         </p>
                     </div>

@@ -40,7 +40,7 @@ export function Card({ children, accentHex = "#9b59f5", glowRgba = "rgba(155,89,
 // --- Divider (ornamental)
 export function Divider({ accentHex = "#9b59f5", children }: { accentHex?: string; children?: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 opacity-40">
+    <div className="flex items-center gap-3 opacity-80">
       <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accentHex})` }} />
       <span className="text-xs" style={{ color: accentHex }}>{children ?? '✦'}</span>
       <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, ${accentHex}, transparent)` }} />
