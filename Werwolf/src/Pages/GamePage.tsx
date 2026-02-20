@@ -12,8 +12,8 @@ export default function GamePage() {
     const [playerId, setPlayerId] = useState<string | null>(null);
 
     useEffect(() => {
-        const storedRoomKey = localStorage.getItem("roomKey");
-        const storedPlayerId = localStorage.getItem("playerId");
+        const storedRoomKey = sessionStorage.getItem("roomKey");
+        const storedPlayerId = sessionStorage.getItem("playerId");
 
         if (!storedRoomKey || !storedPlayerId) {
             navigate("/");
@@ -23,19 +23,20 @@ export default function GamePage() {
         setRoomKey(storedRoomKey);
         setPlayerId(storedPlayerId);
 
+        // Prüft ob der Spieler noch in der Datenbank existiert (z.B. nach Server-Cleanup entfernt)
         const playerRef = ref(db, `rooms/${storedRoomKey}/players`);
         get(child(playerRef, storedPlayerId))
             .then((snapshot) => {
                 if (!snapshot.exists() || !snapshot.val()?.nickname) {
-                    localStorage.removeItem("roomKey");
-                    localStorage.removeItem("playerId");
+                    sessionStorage.removeItem("roomKey");
+                    sessionStorage.removeItem("playerId");
                     navigate("/");
                 }
             })
             .catch((err) => {
                 console.error("Error checking player existence:", err);
-                localStorage.removeItem("roomKey");
-                localStorage.removeItem("playerId");
+                sessionStorage.removeItem("roomKey");
+                sessionStorage.removeItem("playerId");
                 navigate("/");
             });
 

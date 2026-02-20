@@ -39,7 +39,7 @@ export default function JoinRoomPage() {
             get(docRef)
                 .then((snapshot) => {
                     if (snapshot.exists()) {
-                        localStorage.setItem("roomKey", roomCode);
+                        sessionStorage.setItem("roomKey", roomCode);
                         setShowNickname(true);
                     } else {
                         setErrors((prev) => ({ ...prev, roomCode: "Room not found. Please check the code." }));

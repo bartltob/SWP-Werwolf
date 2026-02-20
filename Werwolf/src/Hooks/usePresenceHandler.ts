@@ -8,7 +8,6 @@ export const usePresenceHandler = (roomKey: string, playerId: string) => {
 
         const playerRef = ref(db, `rooms/${roomKey}/players/${playerId}`);
 
-        // Player online setzen
         update(playerRef, {
             status: "online",
             lastOnline: serverTimestamp(),
@@ -16,7 +15,7 @@ export const usePresenceHandler = (roomKey: string, playerId: string) => {
             console.error("Failed to set initial online status:", err);
         });
 
-        // On disconnect → nur markieren
+        // Bei Verbindungsabbruch Status auf "disconnected" setzen – kein Remove
         onDisconnect(playerRef)
             .update({
                 status: "disconnected",

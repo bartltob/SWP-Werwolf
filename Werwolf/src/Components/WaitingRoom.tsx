@@ -21,7 +21,7 @@ export default function WaitingRoom() {
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<any[]>([]);
 
-    const playerId = localStorage.getItem("playerId");
+    const playerId = sessionStorage.getItem("playerId");
     const currentPlayer = players.find((p) => String(p.id) === String(playerId)) || null;
 
     const { removePlayer } = useRemovePlayer();
@@ -43,7 +43,7 @@ export default function WaitingRoom() {
     }, [roomKey]);
 
     useEffect(() => {
-        const key = localStorage.getItem("roomKey");
+        const key = sessionStorage.getItem("roomKey");
         if (key) setRoomKey(key);
         else navigate("/");
     }, [navigate]);
@@ -99,7 +99,7 @@ export default function WaitingRoom() {
                                 />
                             </div>
 
-                            {/* Leave button (now using PrimaryButton for consistent design) */}
+                            {/* Leave-Button */}
                             <PrimaryButton
                                 onClick={() => removePlayer().then(() => navigate("/"))}
                                 accentHex={purpleHex}
@@ -178,7 +178,7 @@ export default function WaitingRoom() {
                         </Card>
 
                         {/* Start button */}
-                        <PrimaryButton onClick={() => { /* start game handler left as logic */ }} disabled={!currentPlayer?.host} accentHex={redHex} className={"w-full py-4 text-lg"}>
+                        <PrimaryButton onClick={() => { /* TODO: Spielstart-Logik */ }} disabled={!currentPlayer?.host} accentHex={redHex} className={"w-full py-4 text-lg"}>
                             {currentPlayer?.host ? "Begin the Hunt →" : "Awaiting Host..."}
                         </PrimaryButton>
 

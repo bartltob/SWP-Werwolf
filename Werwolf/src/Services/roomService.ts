@@ -10,7 +10,7 @@ export async function createRoomInDb(): Promise<string> {
     players: {},
   });
 
-  localStorage.setItem('roomKey', String(roomKey));
+  sessionStorage.setItem('roomKey', String(roomKey));
   return String(roomKey);
 }
 

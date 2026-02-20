@@ -21,9 +21,9 @@ export default function SetNickname({ newRoom }: Props) {
     const { createRoom } = useCreateRoom();
     const navigate = useNavigate();
 
-    // If player already exists, skip to GamePage
+    // Bereits eingeloggter Spieler überspringt die Nicknameeingabe
     useEffect(() => {
-        const existingPlayerId = localStorage.getItem("playerId");
+        const existingPlayerId = sessionStorage.getItem("playerId");
         if (existingPlayerId) {
             navigate("/GamePage");
         }
@@ -36,10 +36,9 @@ export default function SetNickname({ newRoom }: Props) {
             setLoading(true);
 
             if (newRoom) await createRoom();
-            const roomKey = localStorage.getItem("roomKey");
+            const roomKey = sessionStorage.getItem("roomKey");
             if (!roomKey) {
                 console.error("Missing roomKey after create/join");
-                // navigate back to home so user can retry
                 navigate("/");
                 return;
             }
@@ -54,7 +53,7 @@ export default function SetNickname({ newRoom }: Props) {
                 status: "online",
             });
 
-            localStorage.setItem("playerId", String(newPlayerRef.key));
+            sessionStorage.setItem("playerId", String(newPlayerRef.key));
             navigate("/GamePage");
         } catch (err) {
             console.error("Error saving nickname:", err);
@@ -77,7 +76,6 @@ export default function SetNickname({ newRoom }: Props) {
 
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&display=swap');`}</style>
 
-            {/* Background untouched */}
             <Background />
 
             {/* Card */}
