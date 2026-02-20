@@ -1,0 +1,7 @@
+node_modules/
+dist/
+package-lock.json
+
+# Firebase Service Account Key – niemals committen!
+serviceAccountKey.json
+
