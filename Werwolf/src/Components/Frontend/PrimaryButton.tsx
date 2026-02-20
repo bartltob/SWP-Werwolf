@@ -13,8 +13,8 @@ type Props = {
 
 export default function PrimaryButton({ children, onClick, disabled, accentHex = "#9b59f5", glowRgba = "rgba(155,89,245,0.6)", className = "", compact = false }: Props) {
   const compactStyle: React.CSSProperties = compact
-    ? { padding: '6px 10px', fontSize: '0.7rem', borderRadius: 12 }
-    : { padding: '14px 16px' };
+    ? { padding: '16px 18px', fontSize: '0.7rem', borderRadius: 12 }
+    : { padding: '18px 20px' };
 
   return (
     <motion.button

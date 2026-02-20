@@ -21,7 +21,7 @@ export default function MainPage() {
     if (showNickname) return <SetNickname newRoom={true} />;
 
     return (
-        <div className="relative w-full min-h-screen overflow-hidden flex flex-col items-center justify-center px-6"
+        <div className="relative w-full min-h-screen overflow-hidden flex flex-col items-center justify-center px-6 py-6"
              style={{ background: "#060410", fontFamily: "'Cinzel', Georgia, serif" }}>
 
             {/* Google Font */}
@@ -31,7 +31,7 @@ export default function MainPage() {
             <Background />
 
             {/* Content */}
-            <div className="relative z-20 flex flex-col items-center w-full max-w-2xl gap-8">
+            <div className="relative z-20 flex flex-col items-center w-full max-w-2xl gap-6 md:gap-8">
 
                 {/* Wolf icon */}
                 <motion.div
@@ -44,7 +44,8 @@ export default function MainPage() {
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                         className="text-7xl text-center leading-none"
                     >
-                        <img src="/werewolf.png" alt="Wolf Icon" className="w-20 h-20 md:w-32 md:h-32" />
+                        {/* slightly smaller on md to avoid overflow */}
+                        <img src="/werewolf.png" alt="Wolf Icon" className="w-16 h-16 md:w-24 md:h-24" />
                     </motion.div>
                 </motion.div>
 
@@ -55,7 +56,7 @@ export default function MainPage() {
                     transition={{ delay: 0.3, duration: 0.8 }}
                     className="text-center"
                 >
-                    <h1 className="text-5xl md:text-7xl font-black uppercase tracking-widest leading-tight"
+                    <h1 className="text-4xl md:text-6xl font-black uppercase tracking-widest leading-tight"
                         style={{
                             fontFamily: "'Cinzel Decorative', Georgia, serif",
                             background: "linear-gradient(180deg, #fff8dc 0%, #f5c842 30%, #c8701a 65%, #7a3500 100%)",
@@ -67,8 +68,8 @@ export default function MainPage() {
                         }}>
                         Werewolf
                     </h1>
-                    <h2 className="text-xl md:text-2xl tracking-[0.5em] uppercase mt-1"
-                        style={{ color: "rgba(200,150,80,0.7)", letterSpacing: "0.4em" }}>
+                    <h2 className="text-lg md:text-2xl tracking-[0.4em] uppercase mt-1"
+                        style={{ color: "rgba(200,150,80,0.7)", letterSpacing: "0.35em" }}>
                         Online
                     </h2>
                 </motion.div>
@@ -89,7 +90,7 @@ export default function MainPage() {
                 </motion.div>
 
                 {/* Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-3">
                     <ActionCard
                         icon="🔥"
                         label="Create Room"
@@ -115,7 +116,7 @@ export default function MainPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.4 }}
-                    className="text-xs tracking-[0.4em] uppercase mt-6"
+                    className="text-xs tracking-[0.35em] uppercase mt-4"
                     style={{ color: "rgba(120,90,60,0.4)", fontFamily: "Georgia, serif" }}
                 >
                     ⚔ the hunt begins at moonrise ⚔
