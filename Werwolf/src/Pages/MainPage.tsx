@@ -21,7 +21,7 @@ export default function MainPage() {
     if (showNickname) return <SetNickname newRoom={true} />;
 
     return (
-        <div className="relative w-full min-h-screen overflow-hidden flex flex-col items-center justify-center px-6 py-6"
+        <div className="relative w-full h-screen overflow-hidden flex flex-col items-center justify-center px-6 py-6"
              style={{ background: "#060410", fontFamily: "'Cinzel', Georgia, serif" }}>
 
             {/* Google Font */}
