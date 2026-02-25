@@ -50,7 +50,7 @@ async function runCleanup(): Promise<void> {
     if (!rooms) return;
 
     const now = Date.now();
-    const updates: Record<string, null> = {};
+    const updates: Record<string, null | boolean> = {};
 
     for (const [roomKey, room] of Object.entries(rooms)) {
         // ─── Raum-Alter prüfen (12h) ───────────────────────────────
@@ -72,39 +72,53 @@ async function runCleanup(): Promise<void> {
 
         const players = room.players;
 
-        // Kein players-Objekt → Raum direkt löschen
         if (!players || Object.keys(players).length === 0) {
             updates[`rooms/${roomKey}`] = null;
             console.log(`[Cleanup] Leerer Raum entfernt: ${roomKey}`);
             continue;
         }
 
-        // Spieler prüfen
+        const playersToRemove: string[] = [];
+
         for (const [playerId, player] of Object.entries(players)) {
             if (player.status === "disconnected" && player.lastSeen != null) {
                 const elapsed = now - player.lastSeen;
 
                 if (elapsed > GRACE_PERIOD_MS) {
-                    updates[`rooms/${roomKey}/players/${playerId}`] = null;
-                    console.log(
-                        `[Cleanup] Spieler entfernt: ${player.nickname ?? playerId} ` +
-                        `(Raum: ${roomKey}, offline seit ${Math.round(elapsed / 1000)}s)`
-                    );
+                    playersToRemove.push(playerId);
                 }
             }
         }
 
-        // Prüfen ob nach Player-Deletes noch Spieler übrig sind
-        const remainingPlayers =
-            Object.keys(players).length -
-            Object.keys(updates).filter((k) =>
-                k.startsWith(`rooms/${roomKey}/players/`)
-            ).length;
+        for (const playerId of playersToRemove) {
+            const player = players[playerId];
+
+            if (player.host === true) {
+                const candidates = Object.entries(players).filter(
+                    ([id, p]) => id !== playerId && !playersToRemove.includes(id) && p.status !== "disconnected"
+                );
+
+                if (candidates.length > 0) {
+                    const [newHostId] = candidates[Math.floor(Math.random() * candidates.length)];
+                    updates[`rooms/${roomKey}/players/${newHostId}/host`] = true;
+                    console.log(
+                        `[Cleanup] Host-Übergabe: ${player.nickname ?? playerId} → ${players[newHostId]?.nickname ?? newHostId} (Raum: ${roomKey})`
+                    );
+                }
+            }
+
+            updates[`rooms/${roomKey}/players/${playerId}`] = null;
+            console.log(
+                `[Cleanup] Spieler entfernt: ${player.nickname ?? playerId} ` +
+                `(Raum: ${roomKey}, offline seit ${Math.round((now - (player.lastSeen ?? 0)) / 1000)}s)`
+            );
+        }
+
+        const remainingPlayers = Object.keys(players).length - playersToRemove.length;
 
         if (remainingPlayers === 0) {
-            // einzelne Player-Deletes entfernen
             for (const key of Object.keys(updates)) {
-                if (key.startsWith(`rooms/${roomKey}/players/`)) {
+                if (key.startsWith(`rooms/${roomKey}/`)) {
                     delete updates[key];
                 }
             }
@@ -118,7 +132,7 @@ async function runCleanup(): Promise<void> {
 
     if (Object.keys(updates).length > 0) {
         try {
-            await db.ref().update(updates);
+            await db.ref().update(updates as Record<string, any>);
         } catch (err) {
             console.error("[Cleanup] Fehler beim Schreiben der Updates:", err);
         }
@@ -131,6 +145,5 @@ console.log(
     `Grace-Period: ${GRACE_PERIOD_MS / 1000}s, Max-Raum-Alter: 12h`
 );
 
-// Sofort einmal ausführen, dann im Interval
 runCleanup();
 setInterval(runCleanup, CHECK_INTERVAL_MS);
