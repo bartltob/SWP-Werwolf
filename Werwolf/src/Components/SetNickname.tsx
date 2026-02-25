@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { ref, push, set } from "firebase/database";
+import {ref, push, set, get} from "firebase/database";
 import { db } from "../firebase-config";
 import { useCreateRoom } from "../Hooks/useCreateRoom";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Background from "./Frontend/Background";
 import { Card, Divider, CornerOrnaments, CharCount } from "./Frontend/Decorations";
 import HeaderBlock from "./Frontend/HeaderBlock";
@@ -14,14 +14,30 @@ type Props = {
     newRoom: boolean;
 };
 
+async function isNicknameAvailable(roomKey: string | null, nickname: string): Promise<boolean> {
+    const playersSnap = await get(ref(db, `rooms/${roomKey}/players`));
+
+    let taken = false;
+    playersSnap.forEach((child) => {
+        const p = child.val();
+        if (typeof p?.nickname === "string" && p.nickname.trim().toLowerCase() === nickname.trim().toLowerCase()) {
+            taken = true;
+            return true;
+        }
+        return false;
+    });
+
+    return !taken;
+}
+
 export default function SetNickname({ newRoom }: Props) {
     const [nickname, setNickname] = useState("");
     const [loading, setLoading] = useState(false);
     const [focused, setFocused] = useState(false);
+    const [nicknameError, setNicknameError] = useState("");
     const { createRoom } = useCreateRoom();
     const navigate = useNavigate();
 
-    // Bereits eingeloggter Spieler überspringt die Nicknameeingabe
     useEffect(() => {
         const existingPlayerId = sessionStorage.getItem("playerId");
         if (existingPlayerId) {
@@ -34,12 +50,21 @@ export default function SetNickname({ newRoom }: Props) {
 
         try {
             setLoading(true);
+            setNicknameError("");
 
             if (newRoom) await createRoom();
             const roomKey = sessionStorage.getItem("roomKey");
+
             if (!roomKey) {
                 console.error("Missing roomKey after create/join");
                 navigate("/");
+                return;
+            }
+
+            const available = await isNicknameAvailable(roomKey, nickname);
+            if (!available) {
+                setNicknameError("This name is already taken. Choose another.");
+                setLoading(false);
                 return;
             }
 
@@ -78,7 +103,6 @@ export default function SetNickname({ newRoom }: Props) {
 
             <Background />
 
-            {/* Card */}
             <motion.div
                 initial={{ opacity: 0, y: 30, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -88,14 +112,17 @@ export default function SetNickname({ newRoom }: Props) {
                 <Card accentHex={accentHex} glowRgba={glowRgba}>
                     <CornerOrnaments accentHex={accentHex} />
 
-                    {/* Subtle inner glow top */}
                     <div className="absolute top-0 left-0 right-0 h-px"
                          style={{ background: `linear-gradient(90deg, transparent, ${accentHex}66, transparent)` }} />
 
-                    {/* Header */}
-                    <HeaderBlock icon={newRoom ? "🔥" : "🌙"} title={newRoom ? "Create Room" : "Join Room"} subtitle="Choose your name" titleGradient={titleGradient} accentHex={accentHex} />
+                    <HeaderBlock
+                        icon={newRoom ? "🔥" : "🌙"}
+                        title={newRoom ? "Create Room" : "Join Room"}
+                        subtitle="Choose your name"
+                        titleGradient={titleGradient}
+                        accentHex={accentHex}
+                    />
 
-                    {/* Divider */}
                     <Divider accentHex={accentHex} />
 
                     {/* Input */}
@@ -104,26 +131,55 @@ export default function SetNickname({ newRoom }: Props) {
                                style={{ color: "rgba(180,140,80,0.5)" }}>
                             Nickname
                         </label>
-                        <div className="relative text-sm ">
+                        <div className="relative text-sm">
                             <TextInput
                                 value={nickname}
-                                onChange={(e) => setNickname(e.target.value)}
+                                onChange={(e) => {
+                                    setNickname(e.target.value);
+                                    if (nicknameError) setNicknameError("");
+                                }}
                                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                                 onFocus={() => setFocused(true)}
                                 onBlur={() => setFocused(false)}
                                 placeholder="Enter your name..."
                                 maxLength={20}
                                 focused={focused}
-                                accentHex={accentHex}
-                                glowSoft={glowSoft}
+                                accentHex={nicknameError ? "#e85d20" : accentHex}
+                                glowSoft={nicknameError ? "rgba(232,93,32,0.2)" : glowSoft}
                             />
-
                             <CharCount count={nickname.length} />
                         </div>
+
+                        {/* Inline styled error — replaces the browser alert() */}
+                        <AnimatePresence>
+                            {nicknameError && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -4 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                                    style={{
+                                        background: "rgba(232,93,32,0.08)",
+                                        border: "1px solid rgba(232,93,32,0.3)",
+                                    }}
+                                >
+                                    <span style={{ color: "#e85d20", fontSize: "0.75rem" }}>⚔</span>
+                                    <p className="text-xs tracking-wide"
+                                       style={{ color: "#e85d20", fontFamily: "Georgia, serif" }}>
+                                        {nicknameError}
+                                    </p>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
-                    {/* Submit Button */}
-                    <PrimaryButton onClick={handleSubmit} disabled={loading || nickname.trim() === ""} accentHex={accentHex} glowRgba={glowRgba}>
+                    <PrimaryButton
+                        onClick={handleSubmit}
+                        disabled={loading || nickname.trim() === ""}
+                        accentHex={accentHex}
+                        glowRgba={glowRgba}
+                    >
                         {loading ? (
                             <span className="flex items-center justify-center gap-3">
                                 <motion.span
@@ -139,7 +195,6 @@ export default function SetNickname({ newRoom }: Props) {
                         )}
                     </PrimaryButton>
 
-                    {/* Footer */}
                     <p className="text-center text-xs tracking-[0.3em] uppercase"
                        style={{ color: "rgba(100,70,40,0.4)", fontFamily: "Georgia, serif", fontStyle: "italic" }}>
                         ⚔ the night awaits ⚔
