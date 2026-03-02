@@ -7,25 +7,23 @@ const serviceAccount: ServiceAccount = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, "../serviceAccountKey.json"), "utf-8")
 );
 
-// ─── Firebase Admin initialisieren ───────────────────────────────────────────
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL:
-        "https://werwolf-11fc1-default-rtdb.europe-west1.firebasedatabase.app",
+    databaseURL: "https://werwolf-11fc1-default-rtdb.europe-west1.firebasedatabase.app",
 });
 
 const db = admin.database();
 
-// ─── Konstanten ───────────────────────────────────────────────────────────────
-const GRACE_PERIOD_MS = 10_000; // 10 Sekunden
-const CHECK_INTERVAL_MS = 5_000; // alle 5 Sekunden prüfen
-const ROOM_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 Stunden
+const DISCONNECT_GRACE_MS = 5_000;   // 5s nach "disconnected" → entfernen
+const HEARTBEAT_TIMEOUT_MS = 10_000; // 10s kein Heartbeat → entfernen (Zombie-Fallback)
+const CHECK_INTERVAL_MS = 5_000;
+const ROOM_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 
-// ─── Typen ────────────────────────────────────────────────────────────────────
 interface Player {
     nickname?: string;
     status?: string;
     lastSeen?: number;
+    heartbeat?: number;
     host?: boolean;
 }
 
@@ -34,13 +32,15 @@ interface Room {
     created_at?: string;
 }
 
-// ─── Cleanup-Logik ────────────────────────────────────────────────────────────
-async function runCleanup(): Promise<void> {
-    const roomsRef = db.ref("rooms");
+async function getFirebaseServerTime(): Promise<number> {
+    const snap = await db.ref(".info/serverTimeOffset").once("value");
+    return Date.now() + (snap.val() ?? 0);
+}
 
+async function runCleanup(): Promise<void> {
     let snapshot: admin.database.DataSnapshot;
     try {
-        snapshot = await roomsRef.once("value");
+        snapshot = await db.ref("rooms").once("value");
     } catch (err) {
         console.error("[Cleanup] Fehler beim Lesen der Datenbank:", err);
         return;
@@ -49,24 +49,17 @@ async function runCleanup(): Promise<void> {
     const rooms = snapshot.val() as Record<string, Room> | null;
     if (!rooms) return;
 
-    const now = Date.now();
+    const now = await getFirebaseServerTime();
     const updates: Record<string, null | boolean> = {};
 
     for (const [roomKey, room] of Object.entries(rooms)) {
-        // ─── Raum-Alter prüfen (12h) ───────────────────────────────
+        // Raum älter als 12h → löschen
         if (room.created_at) {
             const createdAtMs = new Date(room.created_at).getTime();
-
-            if (!isNaN(createdAtMs)) {
-                const age = now - createdAtMs;
-
-                if (age > ROOM_MAX_AGE_MS) {
-                    updates[`rooms/${roomKey}`] = null;
-                    console.log(
-                        `[Cleanup] Raum gelöscht (älter als 12h): ${roomKey}`
-                    );
-                    continue;
-                }
+            if (!isNaN(createdAtMs) && now - createdAtMs > ROOM_MAX_AGE_MS) {
+                updates[`rooms/${roomKey}`] = null;
+                console.log(`[Cleanup] Raum gelöscht (älter als 12h): ${roomKey}`);
+                continue;
             }
         }
 
@@ -81,23 +74,34 @@ async function runCleanup(): Promise<void> {
         const playersToRemove: string[] = [];
 
         for (const [playerId, player] of Object.entries(players)) {
-            if (player.status === "disconnected" && player.lastSeen != null) {
-                const elapsed = now - player.lastSeen;
+            // Spieler ist als disconnected markiert und lastSeen ist älter als 5s
+            const isDisconnected =
+                player.status === "disconnected" &&
+                player.lastSeen != null &&
+                now - player.lastSeen > DISCONNECT_GRACE_MS;
 
-                if (elapsed > GRACE_PERIOD_MS) {
-                    playersToRemove.push(playerId);
-                }
+            // Fallback: Heartbeat älter als 10s (z.B. Tab gecrasht ohne onDisconnect)
+            const isZombie =
+                player.heartbeat != null &&
+                now - player.heartbeat > HEARTBEAT_TIMEOUT_MS;
+
+            if (isDisconnected || isZombie) {
+                playersToRemove.push(playerId);
+                console.log(
+                    `[Cleanup] Spieler markiert zum Entfernen: ${player.nickname ?? playerId}` +
+                    ` (Raum: ${roomKey}, Grund: ${isDisconnected ? `disconnected seit ${Math.round((now - (player.lastSeen ?? 0)) / 1000)}s` : `kein Heartbeat seit ${Math.round((now - (player.heartbeat ?? 0)) / 1000)}s`})`
+                );
             }
         }
 
         for (const playerId of playersToRemove) {
             const player = players[playerId];
 
+            // Host-Übergabe falls nötig
             if (player.host === true) {
                 const candidates = Object.entries(players).filter(
                     ([id, p]) => id !== playerId && !playersToRemove.includes(id) && p.status !== "disconnected"
                 );
-
                 if (candidates.length > 0) {
                     const [newHostId] = candidates[Math.floor(Math.random() * candidates.length)];
                     updates[`rooms/${roomKey}/players/${newHostId}/host`] = true;
@@ -108,25 +112,16 @@ async function runCleanup(): Promise<void> {
             }
 
             updates[`rooms/${roomKey}/players/${playerId}`] = null;
-            console.log(
-                `[Cleanup] Spieler entfernt: ${player.nickname ?? playerId} ` +
-                `(Raum: ${roomKey}, offline seit ${Math.round((now - (player.lastSeen ?? 0)) / 1000)}s)`
-            );
         }
 
-        const remainingPlayers = Object.keys(players).length - playersToRemove.length;
-
-        if (remainingPlayers === 0) {
+        // Raum löschen wenn danach leer
+        const remainingCount = Object.keys(players).length - playersToRemove.length;
+        if (remainingCount === 0) {
             for (const key of Object.keys(updates)) {
-                if (key.startsWith(`rooms/${roomKey}/`)) {
-                    delete updates[key];
-                }
+                if (key.startsWith(`rooms/${roomKey}/`)) delete updates[key];
             }
-
             updates[`rooms/${roomKey}`] = null;
-            console.log(
-                `[Cleanup] Raum gelöscht (alle Spieler entfernt): ${roomKey}`
-            );
+            console.log(`[Cleanup] Raum gelöscht (keine Spieler mehr): ${roomKey}`);
         }
     }
 
@@ -139,11 +134,7 @@ async function runCleanup(): Promise<void> {
     }
 }
 
-// ─── Start ────────────────────────────────────────────────────────────────────
-console.log(
-    `[Server] Cleanup-Server gestartet. Prüfintervall: ${CHECK_INTERVAL_MS / 1000}s, ` +
-    `Grace-Period: ${GRACE_PERIOD_MS / 1000}s, Max-Raum-Alter: 12h`
-);
+console.log(`[Server] Cleanup gestartet – Interval: ${CHECK_INTERVAL_MS / 1000}s, Disconnect-Grace: ${DISCONNECT_GRACE_MS / 1000}s, Heartbeat-Timeout: ${HEARTBEAT_TIMEOUT_MS / 1000}s`);
 
 runCleanup();
 setInterval(runCleanup, CHECK_INTERVAL_MS);

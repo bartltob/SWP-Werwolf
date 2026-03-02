@@ -12,7 +12,6 @@ export default function MainPage() {
     const [showNickname, setShowNickname] = useState(false);
     const [titleGlow, setTitleGlow] = useState(false);
 
-    // keep hooks at the top so their order is stable across renders
     useEffect(() => {
         const interval = setInterval(() => setTitleGlow(g => !g), 3000);
         return () => clearInterval(interval);

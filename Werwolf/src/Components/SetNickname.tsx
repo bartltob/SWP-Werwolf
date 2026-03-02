@@ -47,7 +47,6 @@ export default function SetNickname({ newRoom }: Props) {
             const newPlayerRef = push(playersRef);
 
             await set(newPlayerRef, {
-                id: newPlayerRef.key,
                 nickname: nickname.trim(),
                 host: newRoom,
                 status: "online",
