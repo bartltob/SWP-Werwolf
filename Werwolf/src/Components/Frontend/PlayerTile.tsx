@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Crown } from "lucide-react";
 import { useRemovePlayer } from "../../Hooks/useRemovePlayer.ts";
+import { FiX } from "react-icons/fi";
 
 type Props = {
   playerID: string | number;
@@ -42,7 +43,15 @@ export default function PlayerTile({ playerID, nickname, roomKey, host, isYou, i
           </span>
         )}
         {!isYou && !host && (
-              <button onClick={() => removePlayer()}>Yessirski</button>
+            <motion.button
+                onClick={() => removePlayer()}
+                whileHover={{ scale: 1.2, color: "#e85d20" }}
+                whileTap={{ scale: 0.9 }}
+                className="opacity-30 hover:opacity-70 transition-opacity duration-200"
+                style={{ color: "#f5e6c8" }}
+            >
+                <FiX size={18} />
+            </motion.button>
         )}
         {isYou && !host && (
 
