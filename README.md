@@ -26,8 +26,6 @@ Das Spiel ist ideal für Spieleabende mit Freunden, Familie oder als schnelle Ru
 
     Frontend: React
 
-    Echtzeit-Kommunikation: [z.B. Socket.io oder Firebase]
-
     CMS: Ermöglicht die einfache Pflege von Texten, Rollen und Spielregeln – ohne dass Code geändert werden muss.
 
     Firebase: Dient als Echtzeit‑Datenbank (Firestore) für die Synchronisation der Spielzustände und Chats zwischen den Spielern. 
@@ -46,4 +44,5 @@ Das Spiel ist ideal für Spieleabende mit Freunden, Familie oder als schnelle Ru
 🔗 Notion‑Projektboard – Hier planen und organisieren wir:
 
 👉 https://remarkable-tail-95b.notion.site/311144fa14c7807fb4fadbc8c876cb9e?v=311144fa14c780b7bae3000c87c65d3e&source=copy_link
+
 
