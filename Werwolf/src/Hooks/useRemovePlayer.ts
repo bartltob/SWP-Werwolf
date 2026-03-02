@@ -1,15 +1,23 @@
-import { ref, remove, get, update } from 'firebase/database';
+import { ref, remove, get, update, onDisconnect } from 'firebase/database';
 import { db } from '../firebase-config';
 
-export const useRemovePlayer = () => {
-    const removePlayer = async () => {
-        const roomKey = sessionStorage.getItem('roomKey');
-        const PlayerId = sessionStorage.getItem('playerId');
+type props = {
+    roomKey: string;
+    playerId: string;
+    isSelf?: boolean; // true = Spieler verlässt selbst (Leave), false = Host kickt jemanden
+}
 
-        if (!roomKey || !PlayerId) return;
+export const useRemovePlayer = ({ roomKey, playerId, isSelf = true }: props) => {
+    const removePlayer = async () => {
+
+        if (!roomKey || !playerId) return;
 
         try {
-            const playerRef = ref(db, `rooms/${roomKey}/players/${PlayerId}`);
+            const playerRef = ref(db, `rooms/${roomKey}/players/${playerId}`);
+
+            // onDisconnect-Handler canceln damit kein Ghost-Write nach dem remove() feuert
+            await onDisconnect(playerRef).cancel().catch(() => {});
+
             const snapshot = await get(playerRef);
             const playerData = snapshot.val();
 
@@ -19,11 +27,15 @@ export const useRemovePlayer = () => {
                 const allPlayers = playersSnap.val() as Record<string, { host?: boolean }> | null;
 
                 const otherIds = allPlayers
-                    ? Object.keys(allPlayers).filter(id => id !== PlayerId)
+                    ? Object.keys(allPlayers).filter(id => id !== playerId)
                     : [];
 
                 if (otherIds.length === 0) {
                     await remove(ref(db, `rooms/${roomKey}`));
+                    if (isSelf) {
+                        sessionStorage.removeItem('roomKey');
+                        sessionStorage.removeItem('playerId');
+                    }
                     return;
                 }
 
@@ -35,8 +47,12 @@ export const useRemovePlayer = () => {
         } catch (err) {
             console.error('useRemovePlayer - Error:', err);
         } finally {
-            sessionStorage.removeItem('roomKey');
-            sessionStorage.removeItem('playerId');
+            // sessionStorage nur löschen wenn Spieler sich selbst entfernt (Leave)
+            // Beim Kick eines anderen Spielers darf die eigene Session nicht angefasst werden
+            if (isSelf) {
+                sessionStorage.removeItem('roomKey');
+                sessionStorage.removeItem('playerId');
+            }
         }
     };
 

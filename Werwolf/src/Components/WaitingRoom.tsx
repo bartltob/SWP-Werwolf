@@ -24,7 +24,7 @@ export default function WaitingRoom() {
     const playerId = sessionStorage.getItem("playerId");
     const currentPlayer = players.find((p) => String(p.id) === String(playerId)) || null;
 
-    const { removePlayer } = useRemovePlayer();
+    const { removePlayer } = useRemovePlayer({ roomKey: roomKey ?? "", playerId: playerId ?? "" });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -32,15 +32,27 @@ export default function WaitingRoom() {
         const playersRef = ref(db, `rooms/${roomKey}/players`);
         const unsubscribe = onValue(playersRef, (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                const playersArray = Object.entries(data).map(([id, value]: any) => ({ id, ...value }));
-                setPlayers(playersArray);
-            } else {
-                setPlayers([]);
+
+            if (!data) {
+                // Raum wurde gelöscht
+                sessionStorage.clear();
+                navigate("/");
+                return;
             }
+
+            const currentPlayerId = sessionStorage.getItem("playerId");
+            if (currentPlayerId && !data[currentPlayerId]) {
+                // Eigener Spieler wurde gekickt oder vom Server entfernt
+                sessionStorage.clear();
+                navigate("/");
+                return;
+            }
+
+            const playersArray = Object.entries(data).map(([id, value]: any) => ({ id, ...value }));
+            setPlayers(playersArray);
         });
         return () => unsubscribe();
-    }, [roomKey]);
+    }, [roomKey, navigate]);
 
     useEffect(() => {
         const key = sessionStorage.getItem("roomKey");
@@ -123,8 +135,9 @@ export default function WaitingRoom() {
                             {players.map((player, i) => (
                                 <PlayerTile
                                     key={player.id}
-                                    id={player.id}
+                                    playerID={player.id}
                                     nickname={player.nickname}
+                                    roomKey={roomKey || undefined}
                                     host={player.host}
                                     isYou={String(player.id) === String(playerId)}
                                     index={i}

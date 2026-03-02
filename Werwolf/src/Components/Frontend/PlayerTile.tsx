@@ -1,21 +1,26 @@
 import { motion } from "framer-motion";
 import { Crown } from "lucide-react";
+import { useRemovePlayer } from "../../Hooks/useRemovePlayer.ts";
 
 type Props = {
-  id: string | number;
+  playerID: string | number;
   nickname: string;
+  roomKey?: string;
   host?: boolean;
   isYou?: boolean;
+  isHost?: boolean;
   index?: number;
   redHex?: string;
   purpleHex?: string;
   redGlow?: string;
 };
 
-export default function PlayerTile({ id, nickname, host, isYou, index = 0, redHex = "#e85d20", purpleHex = "#9b59f5", redGlow = "rgba(232,93,32,0.6)" }: Props) {
+export default function PlayerTile({ playerID, nickname, roomKey, host, isYou, index = 0, redHex = "#e85d20", purpleHex = "#9b59f5", redGlow = "rgba(232,93,32,0.6)" }: Props) {
+  const { removePlayer } = useRemovePlayer({ roomKey: roomKey ?? "", playerId: String(playerID), isSelf: false });
+
   return (
     <motion.div
-      key={id}
+      key={playerID}
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.06 }}
@@ -36,7 +41,11 @@ export default function PlayerTile({ id, nickname, host, isYou, index = 0, redHe
             <Crown size={12} /> Host
           </span>
         )}
+        {!isYou && !host && (
+              <button onClick={() => removePlayer()}>Yessirski</button>
+        )}
         {isYou && !host && (
+
           <span className="text-xs tracking-widest" style={{ color: "rgba(155,89,245,0.6)" }}>You</span>
         )}
       </div>
