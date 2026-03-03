@@ -10,6 +10,7 @@ import HeaderBlock from "./Frontend/HeaderBlock";
 import { Card, Divider, CornerOrnaments } from "./Frontend/Decorations";
 import PrimaryButton from "../Components/Frontend/PrimaryButton";
 import PlayerTile from "./Frontend/PlayerTile";
+import { useChatStore, CHAT_WIDTH } from "../store/chatStore";
 
 const redHex = "#e85d20";
 const purpleHex = "#9b59f5";
@@ -20,6 +21,7 @@ export default function WaitingRoom() {
     const [roomKey, setRoomKey] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<any[]>([]);
+    const { collapsed } = useChatStore();
 
     const playerId = sessionStorage.getItem("playerId");
     const currentPlayer = players.find((p) => String(p.id) === String(playerId)) || null;
@@ -68,8 +70,11 @@ export default function WaitingRoom() {
     };
 
     return (
-        <div className="relative w-full min-h-screen text-white flex items-center justify-center px-6 py-10 overflow-hidden"
-             style={{ background: "#060410", fontFamily: "'Cinzel', Georgia, serif" }}>
+        <motion.div
+            className="relative w-full min-h-screen text-white flex items-center justify-center px-6 py-10 overflow-hidden"
+            animate={{ paddingRight: collapsed ? "1.5rem" : `calc(1.5rem + ${CHAT_WIDTH}px)` }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            style={{ background: "#060410", fontFamily: "'Cinzel', Georgia, serif" }}>
 
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&display=swap');`}</style>
 
@@ -202,6 +207,6 @@ export default function WaitingRoom() {
                     </div>
                 </Card>
             </motion.div>
-        </div>
+        </motion.div>
     );
 }
