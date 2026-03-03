@@ -24,6 +24,7 @@ const CHANNELS: { id: ChatChannel; label: string; icon: React.ReactNode; accent:
 
 export default function Chat() {
     const [input, setInput] = useState("");
+    const [limitFlash, setLimitFlash] = useState(false);
     const [activeTab, setActiveTab] = useState<Tab>("chat");
     const [activeChannel, setActiveChannel] = useState<ChatChannel>("village");
     const [channelPopover, setChannelPopover] = useState(false);
@@ -172,19 +173,23 @@ export default function Chat() {
                                                         : (nicknames[msg.sender] ?? msg.sender)}
                                                 </span>
                                             )}
-                                            <div className="px-3 py-2 rounded-xl text-xs leading-relaxed max-w-[90%]"
+                                            <div className="px-3 py-2 rounded-xl text-xs leading-relaxed max-w-[90%] break-words"
                                                  style={isSelf ? {
                                                      background: `linear-gradient(135deg, ${ch.accent}33, ${ch.accent}18)`,
                                                      border: `1px solid ${ch.accent}44`,
                                                      color: "rgba(235,220,255,0.92)",
                                                      fontFamily: "Inter, system-ui, sans-serif",
                                                      letterSpacing: "0.01em",
+                                                     whiteSpace: "pre-wrap",
+                                                     wordBreak: "break-word",
                                                  } : {
                                                      background: "rgba(255,255,255,0.04)",
                                                      border: "1px solid rgba(255,255,255,0.07)",
                                                      color: "rgba(200,185,220,0.82)",
                                                      fontFamily: "Inter, system-ui, sans-serif",
                                                      letterSpacing: "0.01em",
+                                                     whiteSpace: "pre-wrap",
+                                                     wordBreak: "break-word",
                                                  }}>
                                                 {msg.message}
                                             </div>
@@ -268,7 +273,16 @@ export default function Chat() {
 
                                 <input
                                     value={input}
-                                    onChange={e => setInput(e.target.value)}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (val.length > 250) {
+                                            setInput(val.slice(0, 250));
+                                            setLimitFlash(true);
+                                            setTimeout(() => setLimitFlash(false), 600);
+                                            return;
+                                        }
+                                        setInput(val);
+                                    }}
                                     onKeyDown={e => { if (e.key === "Enter" && input.trim()) { sendMessage(input, activeChannel); setInput(""); } }}
                                     placeholder={activeChannel === "village" ? "Whisper to the village…" : "Speak to the pack…"}
                                     className="flex-1 bg-transparent text-xs outline-none tracking-wide"
@@ -278,6 +292,16 @@ export default function Chat() {
                                         caretColor: CHANNELS.find(c => c.id === activeChannel)!.accent,
                                     }}
                                 />
+
+                                <motion.span
+                                    animate={{ color: limitFlash ? "#e85d20" : "rgba(160,150,180,0.3)" }}
+                                    transition={{ duration: 0.15 }}
+                                    className="flex-shrink-0 text-[11px] select-none pointer-events-none"
+                                    style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                                >
+                                    {input.length}/250
+                                </motion.span>
+
                                 <motion.button
                                     onClick={() => { sendMessage(input, activeChannel); setInput(""); }}
                                     whileHover={{ scale: 1.15, filter: `drop-shadow(0 0 8px ${CHANNELS.find(c => c.id === activeChannel)!.accent})` }}

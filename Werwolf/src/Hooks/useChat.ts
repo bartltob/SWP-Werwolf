@@ -67,6 +67,7 @@ export function useChat(roomKey: string | null, playerId: string | null, chatTyp
             return;
         }
         if (!text.trim()) return;
+        if (text.trim().length > 250) return;
 
         // Berechtigungsprüfung (SCHREIBEN):
         //  - "village"    → alle Spieler dürfen schreiben (tagsüber + Lobby)
