@@ -137,7 +137,7 @@ export default function Chat() {
                             className="flex-1 flex flex-col min-h-0"
                         >
                             {/* Messages */}
-                            <div className="flex-1 flex flex-col gap-2 px-4 py-4 overflow-y-auto min-h-0">
+                            <div className="flex-1 flex flex-col gap-2 px-4 py-4 overflow-y-auto min-h-0 chat-scroll">
                                 {messages.length === 0 && (
                                     <p className="text-center text-xs mt-4" style={{
                                         color: "rgba(180,160,200,0.25)",
@@ -326,7 +326,7 @@ export default function Chat() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -6 }}
                             transition={{ duration: 0.2 }}
-                            className="flex-1 flex flex-col gap-5 px-5 py-6 overflow-y-auto min-h-0"
+                            className="flex-1 flex flex-col gap-5 px-5 py-6 overflow-y-auto min-h-0 chat-scroll"
                             style={{ fontFamily: "'Cinzel', Georgia, serif" }}
                         >
                             <p className="text-[10px] tracking-[0.3em] uppercase" style={{ color: `${amberHex}88` }}>
