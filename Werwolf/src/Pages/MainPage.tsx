@@ -1,23 +1,24 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import SetNickname from "../Components/SetNickname";
 import Background from "../Components/Frontend/Background";
 import ActionCard from "../Components/Frontend/ActionCard";
 import { OrnamentalDivider } from "../Components/Frontend/Decorations";
+import JoinRoom from "../Components/JoinRoom";
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MainPage() {
-    const navigate = useNavigate();
     const [showNickname, setShowNickname] = useState(false);
     const [titleGlow, setTitleGlow] = useState(false);
+    const [showJoinOverlay, setShowJoinOverlay] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => setTitleGlow(g => !g), 3000);
         return () => clearInterval(interval);
     }, []);
 
-    if (showNickname) return <SetNickname newRoom={true} />;
+    // NOTE: render SetNickname as an overlay so it can be closed via onClose
+    // instead of returning early and replacing the entire page.
 
     return (
         <div className="relative w-full h-screen overflow-hidden flex flex-col items-center justify-center px-6 py-6"
@@ -105,7 +106,7 @@ export default function MainPage() {
                         subtitle="Enter the shadows with a secret code"
                         accentColor="#9b59f5"
                         glowColor="rgba(155,89,245,0.7)"
-                        onClick={() => navigate("/JoinRoom")}
+                        onClick={() => setShowJoinOverlay(true)}
                         delay={1.0}
                     />
                 </div>
@@ -121,6 +122,20 @@ export default function MainPage() {
                     ⚔ the hunt begins at moonrise ⚔
                 </motion.p>
             </div>
+
+            {/* Overlay for JoinRoom */}
+            {showJoinOverlay && (
+                <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <JoinRoom onClose={() => setShowJoinOverlay(false)} />
+                </div>
+            )}
+
+            {/* Overlay for SetNickname (Create Room) */}
+            {showNickname && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <SetNickname newRoom={true} onClose={() => setShowNickname(false)} />
+                </div>
+            )}
         </div>
     );
 }

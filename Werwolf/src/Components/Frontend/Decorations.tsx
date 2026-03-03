@@ -5,7 +5,7 @@ export function CornerOrnaments({ accentHex = "#9b59f5" }: { accentHex?: string 
     <>
       {[
         "top-3 left-3 border-t border-l",
-        "top-3 right-3 border-t border-r",
+        "top-3 right-3 border-t -z-10 border-r",
         "bottom-3 left-3 border-b border-l",
         "bottom-3 right-3 border-b border-r",
       ].map((cls, i) => (

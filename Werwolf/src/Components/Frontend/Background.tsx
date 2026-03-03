@@ -63,22 +63,37 @@ function Particles() {
 
 // ── Moon (left side) ──
 function Moon() {
-  return (
-    <div className="absolute top-8 left-12 z-10 pointer-events-none select-none">
-      <motion.div
-        animate={{ boxShadow: ["0 0 60px 20px rgba(255,220,120,0.25)", "0 0 100px 40px rgba(255,200,80,0.45)", "0 0 60px 20px rgba(255,220,120,0.25)"] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="w-28 h-28 rounded-full"
-        style={{ background: "radial-gradient(circle at 38% 35%, #fff8dc, #f5d060 40%, #c8901a 80%, #5a3800)" }}
-      />
-      <motion.div
-        animate={{ x: [0, 18, 0], opacity: [0.18, 0.28, 0.18] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -bottom-2 -right-8 w-20 h-6 rounded-full blur-md"
-        style={{ background: "rgba(20,10,40,0.7)" }}
-      />
-    </div>
-  );
+    return (
+        <div className="absolute top-8 left-12 z-10 pointer-events-none select-none">
+            {/* Outer atmosphere haze */}
+            <motion.div
+                animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.06, 1] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 rounded-full blur-2xl"
+                style={{
+                    background: "radial-gradient(circle, rgba(180,100,20,0.45) 0%, transparent 70%)",
+                    transform: "scale(1.4)",
+                }}
+            />
+
+            {/* Moon image with pulse glow */}
+            <motion.img
+                src="/moon.png"
+                alt="moon"
+                animate={{
+                    y: [0, -6, 0],
+                    filter: [
+                        "drop-shadow(0 0 18px rgba(200,120,20,0.5)) drop-shadow(0 0 40px rgba(180,80,10,0.3))",
+                        "drop-shadow(0 0 30px rgba(220,140,30,0.75)) drop-shadow(0 0 70px rgba(200,100,15,0.45))",
+                        "drop-shadow(0 0 18px rgba(200,120,20,0.5)) drop-shadow(0 0 40px rgba(180,80,10,0.3))",
+                    ],
+                }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="w-32 h-32 rounded-full"
+                style={{ display: "block" }}
+            />
+        </div>
+    );
 }
 
 const RUNES = "ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ";
