@@ -9,9 +9,11 @@ import { Card, Divider, CornerOrnaments, CharCount } from "./Frontend/Decoration
 import HeaderBlock from "./Frontend/HeaderBlock";
 import TextInput from "./Frontend/TextInput";
 import PrimaryButton from "./Frontend/PrimaryButton";
+import CloseButton from "./Frontend/CloseButton.tsx";
 
 type Props = {
     newRoom: boolean;
+        onClose?: () => void;
 };
 
 async function isNicknameAvailable(roomKey: string | null, nickname: string): Promise<boolean> {
@@ -30,7 +32,7 @@ async function isNicknameAvailable(roomKey: string | null, nickname: string): Pr
     return !taken;
 }
 
-export default function SetNickname({ newRoom }: Props) {
+export default function SetNickname({ newRoom,onClose }: Props) {
     const [nickname, setNickname] = useState("");
     const [loading, setLoading] = useState(false);
     const [focused, setFocused] = useState(false);
@@ -44,6 +46,11 @@ export default function SetNickname({ newRoom }: Props) {
             navigate("/GamePage");
         }
     }, [navigate]);
+
+    const handleClose = () => {
+        if (onClose) onClose();
+        else navigate("/");
+    };
 
     const handleSubmit = async () => {
         if (nickname.trim() === "") return;
@@ -108,6 +115,10 @@ export default function SetNickname({ newRoom }: Props) {
                 transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                 className="relative z-10 w-full max-w-md"
             >
+
+                {/* Close button (top-right) */}
+                <CloseButton onClick={handleClose} accentHex={"#c4622d"} />
+
                 <Card accentHex={accentHex} glowRgba={glowRgba}>
                     <CornerOrnaments accentHex={accentHex} />
 

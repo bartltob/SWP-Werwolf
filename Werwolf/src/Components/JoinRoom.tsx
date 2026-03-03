@@ -1,21 +1,28 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ref, get } from "firebase/database";
-import { db } from "../firebase-config";
-import SetNickname from "../Components/SetNickname";
-import Background from "../Components/Frontend/Background";
+import { db } from "../firebase-config.ts";
+import SetNickname from "./SetNickname.tsx";
+import Background from "./Frontend/Background.tsx";
+import { useNavigate } from "react-router-dom";
 
-import { Card, Divider } from "../Components/Frontend/Decorations";
-import HeaderBlock from "../Components/Frontend/HeaderBlock";
-import TextInput from "../Components/Frontend/TextInput";
-import PrimaryButton from "../Components/Frontend/PrimaryButton";
-import { CornerOrnaments } from "../Components/Frontend/Decorations";
+import { Card, Divider } from "./Frontend/Decorations.tsx";
+import HeaderBlock from "./Frontend/HeaderBlock.tsx";
+import TextInput from "./Frontend/TextInput.tsx";
+import PrimaryButton from "./Frontend/PrimaryButton.tsx";
+import { CornerOrnaments } from "./Frontend/Decorations.tsx";
+import CloseButton from "./Frontend/CloseButton";
 
 const accentHex = "#9b59f5";
 const glowRgba = "rgba(155,89,245,0.6)";
 const glowSoft = "rgba(155,89,245,0.2)";
 
-export default function JoinRoomPage() {
+interface Props {
+    onClose?: () => void;
+}
+
+export default function JoinRoom({ onClose}: Props) {
+    const navigate = useNavigate();
     const [roomCode, setRoomCode] = useState("");
     const [errors, setErrors] = useState({ roomCode: "" });
     const [showNickname, setShowNickname] = useState(false);
@@ -53,12 +60,18 @@ export default function JoinRoomPage() {
         }
     };
 
+    const handleClose = () => {
+        if (onClose) onClose();
+        else navigate("/");
+    };
+
     if (showNickname) return <SetNickname newRoom={false} />;
 
     return (
-        <div className="relative w-full min-h-screen text-white flex items-center justify-center px-6 overflow-hidden"
-             style={{ background: "#060410", fontFamily: "'Cinzel', Georgia, serif" }}>
-
+        <div
+            className="relative w-full min-h-screen text-white flex items-center justify-center px-6 overflow-hidden"
+            style={{ background: "#060410", fontFamily: "'Cinzel', Georgia, serif" }}
+        >
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&display=swap');`}</style>
 
             <Background />
@@ -72,16 +85,17 @@ export default function JoinRoomPage() {
                 <Card accentHex={accentHex} glowRgba={glowRgba}>
                     <CornerOrnaments accentHex={accentHex} />
 
+                    {/* Close button — inside card, top-right corner */}
+                    <CloseButton onClick={handleClose} accentHex={accentHex} />
+
                     {/* Subtle top glow */}
                     <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accentHex}66, transparent)` }} />
 
                     {/* Header */}
                     <HeaderBlock icon={"🌙"} title={"Join Room"} subtitle={"Enter the 6-digit code"} titleGradient={"linear-gradient(180deg, #e8d8ff 0%, #b57bf5 40%, #6a2fbf 100%)"} accentHex={accentHex} />
 
-                    {/* Divider */}
                     <Divider accentHex={accentHex} />
 
-                    {/* Input */}
                     <div className="flex flex-col gap-2">
                         <label className="text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(180,140,80,0.5)" }}>
                             Room Code
@@ -109,12 +123,10 @@ export default function JoinRoomPage() {
                         )}
                     </div>
 
-                    {/* Submit */}
                     <PrimaryButton onClick={handleJoin} disabled={loading || roomCode.length !== 6} accentHex={accentHex} glowRgba={glowRgba}>
                         {loading ? "Searching the Night..." : "Enter the Hunt →"}
                     </PrimaryButton>
 
-                    {/* Footer */}
                     <p className="text-center text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(100,70,40,0.4)", fontFamily: "Georgia, serif", fontStyle: "italic" }}>
                         ⚔ the night awaits ⚔
                     </p>
