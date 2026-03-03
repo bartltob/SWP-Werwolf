@@ -32,7 +32,7 @@ export default function Chat() {
 
     const playerId = sessionStorage.getItem("playerId");
     const roomKey = sessionStorage.getItem("roomKey");
-    const {messages, sendMessage} = useChat(roomKey, playerId, activeChannel);
+    const {messages, sendMessage, nicknames, connected} = useChat(roomKey, playerId, activeChannel);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -158,13 +158,18 @@ export default function Chat() {
                                             className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}
                                         >
                                             {!isSelf && (
-                                                <span className="text-[10px] mb-0.5 px-1 tracking-wide"
+                                                <span className="text-[10px] mb-0.5 px-1 tracking-wide flex items-center gap-1"
                                                       style={{
-                                                          color: `${ch.accent}99`,
+                                                          color: !connected[msg.sender]
+                                                              ? "rgba(160,160,160,0.4)"
+                                                              : `${ch.accent}99`,
                                                           fontFamily: "Inter, system-ui, sans-serif",
                                                           fontWeight: 600,
+                                                          fontStyle: !connected[msg.sender] ? "italic" : "normal",
                                                       }}>
-                                                    {msg.sender}
+                                                    {!connected[msg.sender]
+                                                        ? "Disconnected"
+                                                        : (nicknames[msg.sender] ?? msg.sender)}
                                                 </span>
                                             )}
                                             <div className="px-3 py-2 rounded-xl text-xs leading-relaxed max-w-[90%]"
