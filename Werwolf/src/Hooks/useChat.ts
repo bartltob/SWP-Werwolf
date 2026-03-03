@@ -16,7 +16,6 @@ export function useChat(roomKey: string | null, playerId: string | null, chatTyp
     const [nicknames, setNicknames] = useState<Record<string, string>>({});
     const [connected, setConnected] = useState<Record<string, boolean>>({});
 
-    // Lade alle Spieler-Nicknames einmalig (und bei Änderungen)
     useEffect(() => {
         if (!roomKey) return;
         const playersRef = ref(db, `rooms/${roomKey}/players`);
@@ -27,7 +26,7 @@ export function useChat(roomKey: string | null, playerId: string | null, chatTyp
                 const conn: Record<string, boolean> = {};
                 Object.entries(data).forEach(([id, val]: any) => {
                     names[id] = val.nickname ?? id;
-                    conn[id] = val.connected !== false; // false nur wenn explizit false
+                    conn[id] = val.connected !== false;
                 });
                 setNicknames(names);
                 setConnected(conn);
