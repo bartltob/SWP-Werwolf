@@ -21,6 +21,7 @@ export default function WaitingRoom() {
     const [roomKey, setRoomKey] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<any[]>([]);
+    const [playerLength, setPlayerLength] = useState(0);
     const { collapsed } = useChatStore();
 
     const playerId = sessionStorage.getItem("playerId");
@@ -51,6 +52,7 @@ export default function WaitingRoom() {
             }
 
             const playersArray = Object.entries(data).map(([id, value]: any) => ({ id, ...value }));
+            setPlayerLength(playersArray.length);
             setPlayers(playersArray);
         });
         return () => unsubscribe();
@@ -196,8 +198,26 @@ export default function WaitingRoom() {
                         </Card>
 
                         {/* Start button */}
-                        <PrimaryButton onClick={() => { /* TODO: Spielstart-Logik */ }} disabled={!currentPlayer?.host} accentHex={redHex} className={"w-full py-4 text-lg"}>
-                            {currentPlayer?.host ? "Begin the Hunt →" : "Awaiting Host..."}
+                        <PrimaryButton
+                            onClick={() => { /* TODO: Spielstart-Logik */ }}
+                            disabled={!currentPlayer?.host || playerLength < 5}
+                            accentHex={redHex}
+                            className={"w-full py-4 text-lg"}
+                        >
+                            {(() => {
+                                if (playerLength < 5) {
+                                    if (playerLength === 4) {
+                                        return "Waiting for 1 more Player";
+                                    }
+                                    return `Waiting for ${5 - playerLength} more Players`;
+                                }
+
+                                if (!currentPlayer?.host) {
+                                    return "Awaiting Host...";
+                                }
+
+                                return "Begin the Hunt →";
+                            })()}
                         </PrimaryButton>
 
                         {/* Footer */}
