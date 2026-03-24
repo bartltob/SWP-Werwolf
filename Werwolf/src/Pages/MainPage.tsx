@@ -5,6 +5,7 @@ import Background from "../Components/Frontend/Background";
 import ActionCard from "../Components/Frontend/ActionCard";
 import { OrnamentalDivider } from "../Components/Frontend/Decorations";
 import JoinRoom from "../Components/JoinRoom";
+import { socket } from "../socket";
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MainPage() {
@@ -15,6 +16,15 @@ export default function MainPage() {
     useEffect(() => {
         const interval = setInterval(() => setTitleGlow(g => !g), 3000);
         return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        socket.on("connect", () => {
+            console.log("Connected to server:", socket.id);
+        });
+        return () => {
+            socket.off("connect");
+        };
     }, []);
 
     // NOTE: render SetNickname as an overlay so it can be closed via onClose
