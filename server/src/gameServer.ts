@@ -1,6 +1,13 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const directusURL= process.env.DIRECTUS_URL;
+const directusToken = process.env.DIRECTUS_AUTH_TOKEN;
 
 const app = express();
 const server = http.createServer(app);
@@ -12,6 +19,28 @@ const io = new Server(server, {
 });
 
 let rooms: any = {};
+let cards: any[] = [];
+
+async function loadCards() {
+    try {
+        const res = await fetch(`${directusURL}/items/werewolf_collection`, {
+            headers: {
+                Authorization: `Bearer ${directusToken}` // only if auth needed
+            }
+        });
+
+        const data = await res.json();
+        console.log("Raw response from Directus:", data); // 🔥 check this
+
+        cards = data.data;
+        console.log("Cards loaded:", cards.length);
+    } catch (err) {
+        console.error("Error loading cards:", err);
+    }
+}
+
+// Load once at server start
+loadCards();
 
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);

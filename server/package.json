@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "firebase-admin": "^13.6.1",
     "socket.io": "^4.8.3"
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.0",
+    "@types/node-fetch": "^2.6.13",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
