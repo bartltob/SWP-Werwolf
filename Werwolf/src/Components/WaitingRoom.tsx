@@ -86,6 +86,11 @@ export default function WaitingRoom() {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    function handelLeave() {
+        removePlayer().then(() => navigate("/"));
+        socket.emit("leaveRoom", roomKey);
+    }
+
     return (
         <motion.div
             className="relative w-full min-h-screen text-white flex items-center justify-center px-6 py-10 overflow-hidden"
@@ -135,7 +140,8 @@ export default function WaitingRoom() {
 
                             {/* Leave-Button */}
                             <PrimaryButton
-                                onClick={() => removePlayer().then(() => navigate("/"))}
+                                onClick={() => (handelLeave()
+                                )}
                                 accentHex={purpleHex}
                                 compact
                                 className={"w-auto"}
