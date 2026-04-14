@@ -1,4 +1,3 @@
-
 import {Route, Routes} from "react-router-dom";
 import MainPage from "./Pages/MainPage.tsx";
 import GamePage from "./Pages/GamePage.tsx";

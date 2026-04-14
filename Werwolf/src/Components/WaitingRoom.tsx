@@ -79,6 +79,13 @@ export default function WaitingRoom() {
         else navigate("/");
     }, [navigate]);
 
+    useEffect(() => {
+        return () => {
+            // This fires on back button, route change, anything that unmounts this component
+            socket.emit("leaveRoom", roomKey);
+        };
+    }, [roomKey]);
+
     const handleCopy = async () => {
         if (!roomKey) return;
         await navigator.clipboard.writeText(roomKey);
@@ -90,6 +97,7 @@ export default function WaitingRoom() {
         removePlayer().then(() => navigate("/"));
         socket.emit("leaveRoom", roomKey);
     }
+
 
     return (
         <motion.div
