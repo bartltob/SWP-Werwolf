@@ -12,6 +12,8 @@ import PrimaryButton from "../Components/Frontend/PrimaryButton";
 import PlayerTile from "./Frontend/PlayerTile";
 import { useChatStore, CHAT_WIDTH } from "../store/chatStore";
 import {socket} from "../socket.ts";
+import Sidebar from "./Sidebar.tsx";
+
 
 const redHex = "#e85d20";
 const purpleHex = "#9b59f5";
@@ -23,6 +25,7 @@ export default function WaitingRoom() {
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<any[]>([]);
     const [joined, setJoined] = useState(false);
+    const [distribution, setDistribution] = useState<Record<string, number>>({});
     const { collapsed } = useChatStore();
 
 
@@ -82,9 +85,15 @@ export default function WaitingRoom() {
     useEffect(() => {
         return () => {
             // This fires on back button, route change, anything that unmounts this component
-            socket.emit("leaveRoom", roomKey);
+            socket.emit("leaveRoom", { roomId: roomKey, targetPlayerId: playerId });
         };
     }, [roomKey]);
+
+    // Im ersten useEffect (joinRoom) den socket listener ergänzen
+    useEffect(() => {
+        socket.on("cardDistributionUpdate", (dist) => setDistribution(dist));
+        return () => { socket.off("cardDistributionUpdate"); };
+    }, []);
 
     const handleCopy = async () => {
         if (!roomKey) return;
@@ -95,7 +104,7 @@ export default function WaitingRoom() {
 
     function handelLeave() {
         removePlayer().then(() => navigate("/"));
-        socket.emit("leaveRoom", roomKey);
+        socket.emit("leaveRoom", { roomId: roomKey, targetPlayerId: playerId });
     }
 
 
@@ -198,48 +207,101 @@ export default function WaitingRoom() {
                     </div>
 
                     {/* ── RIGHT: Room Code + Start ── */}
-                    <div className="flex flex-col justify-between gap-6">
+                    <div className="flex flex-col gap-4 h-full">
 
-                        {/* Room code panel — use purple accent instead of red */}
-                        <Card accentHex={purpleHex} glowRgba={purpleGlow}>
+                        {/* Room code — mini bar */}
+                        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl"
+                             style={{ background: "rgba(0,0,0,0.35)", border: `1px solid ${purpleHex}33` }}>
+                            <div className="flex items-center gap-3">
+            <span className="text-xs tracking-[0.25em] uppercase"
+                  style={{ color: "rgba(155,89,245,0.5)" }}>Code</span>
+                                <span className="font-mono text-sm tracking-[0.35em]"
+                                      style={{ color: "#f5e6c8" }}>{roomKey}</span>
+                            </div>
+                            <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
+                                           onClick={handleCopy}
+                                           style={{ color: copied ? purpleHex : "rgba(155,89,245,0.5)" }}
+                                           className="transition-colors duration-300 ml-2">
+                                {copied ? <Check size={13} /> : <Copy size={13} />}
+                            </motion.button>
+                        </div>
+
+                        {/* Roles panel — fixed height, scrollable */}
+                        <div className="relative rounded-2xl flex flex-col overflow-hidden"
+                             style={{ border: `1px solid ${purpleHex}25`, background: "rgba(15,8,35,0.7)", flex: 1 }}>
+
+                            <div className="absolute top-0 left-0 right-0 h-px"
+                                 style={{ background: `linear-gradient(90deg, transparent, ${purpleHex}55, transparent)` }} />
                             <CornerOrnaments accentHex={purpleHex} />
 
-                            <p className="text-sm tracking-[0.3em] uppercase" style={{ color: "rgba(200,200,200)" }}>
-                                Room Code
-                            </p>
-
-                            <div className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: "rgba(0,0,0,0.4)", border: `1px solid ${purpleHex}33` }}>
-                                <span className="tracking-[0.4em] font-mono text-xl" style={{ color: "#f5e6c8" }}>{roomKey}</span>
-                                <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} onClick={handleCopy} style={{ color: copied ? purpleHex : "rgba(155,89,245,0.7)" }} className="transition-colors duration-300">
-                                    {copied ? <Check size={18} /> : <Copy size={18} />}
-                                </motion.button>
+                            <div className="px-4 pt-4 pb-2 shrink-0">
+                                <p className="text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(155,89,245,0.6)" }}>
+                                    ⚔ Roles in play
+                                </p>
+                                <div className="mt-2 h-px" style={{ background: `linear-gradient(90deg, ${purpleHex}44, transparent)` }} />
                             </div>
 
-                            {copied && (
-                                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-center tracking-widest" style={{ color: purpleHex }}>
-                                    Copied to clipboard
-                                </motion.p>
-                            )}
+                            <div className="flex flex-col gap-1.5 px-4 pb-4 overflow-y-auto"
+                                 style={{ scrollbarWidth: "thin", scrollbarColor: `${purpleHex}44 transparent` }}>
+                                {Object.entries(distribution)
+                                    .filter(([, count]) => count > 0)
+                                    .map(([role, count]) => {
+                                        const isWolf = role === "Werewolf";
+                                        const accent = isWolf ? redHex : purpleHex;
+                                        const icons: Record<string, string> = {
+                                            Werewolf: "🐺", Seer: "👁", Witch: "🧙",
+                                            Hunter: "🏹", Cupid: "💘", Villager: "🌾",
+                                        };
+                                        return (
+                                            <motion.div
+                                                key={role}
+                                                initial={{ opacity: 0, x: 10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                className="flex items-center justify-between px-3 py-2 rounded-lg"
+                                                style={{ background: "rgba(0,0,0,0.25)", border: `1px solid ${accent}22`, flexShrink: 0 }}
+                                            >
+                                                <span className="text-sm mr-2">{icons[role] ?? "❓"}</span>
+                                                <span className="flex-1 text-xs tracking-[0.12em] uppercase"
+                                                      style={{ color: "rgba(235,215,255,0.85)" }}>
+                                {role}
+                            </span>
+                                                <span className="text-xs font-bold px-2 py-0.5 rounded-md min-w-[24px] text-center"
+                                                      style={{ color: accent, background: `${accent}18`, border: `1px solid ${accent}33` }}>
+                                {count}
+                            </span>
+                                            </motion.div>
+                                        );
+                                    })}
 
-                            <p className="text-xs tracking-wide text-center" style={{ color: "rgba(200,200,200,0.35)", fontStyle: "italic" }}>
-                                Share this code with your pack
-                            </p>
-                        </Card>
+                                {Object.values(distribution).every(c => c === 0) && (
+                                    <p className="text-xs text-center py-4 tracking-widest italic"
+                                       style={{ color: "rgba(200,200,200,0.2)" }}>
+                                        Waiting for players...
+                                    </p>
+                                )}
+                            </div>
+                        </div>
 
                         {/* Start button */}
-                        <PrimaryButton  onClick={() => {
-                            socket.emit("startGame", roomKey)}}
-                            disabled={!currentPlayer?.host} accentHex={redHex} className={"w-full py-4 text-lg"}>
+                        <PrimaryButton
+                            onClick={() => { socket.emit("startGame", roomKey); }}
+                            disabled={!currentPlayer?.host}
+                            accentHex={redHex}
+                            className="w-full py-4 text-lg shrink-0"
+                        >
                             {currentPlayer?.host ? "Begin the Hunt →" : "Awaiting Host..."}
                         </PrimaryButton>
 
-                        {/* Footer */}
-                        <p className="text-center text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(200,200,200,0.4)", fontStyle: "italic" }}>
+                        <p className="text-center text-xs tracking-[0.3em] uppercase shrink-0"
+                           style={{ color: "rgba(200,200,200,0.4)", fontStyle: "italic" }}>
                             ⚔ the hunt begins ⚔
                         </p>
                     </div>
                 </Card>
+
             </motion.div>
+            <Sidebar distribution={distribution} playerCount={players.length} isHost={!!currentPlayer?.host} />
         </motion.div>
+
     );
 }

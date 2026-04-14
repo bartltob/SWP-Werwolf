@@ -14,9 +14,9 @@ admin.initializeApp({
 
 const db = admin.database();
 
-const DISCONNECT_GRACE_MS = 5_000;   // 5s nach "disconnected" → entfernen
-const HEARTBEAT_TIMEOUT_MS = 10_000; // 10s kein Heartbeat → entfernen (Zombie-Fallback)
-const CHECK_INTERVAL_MS = 5_000;
+const DISCONNECT_GRACE_MS = 5000_000;   // 5s nach "disconnected" → entfernen
+const HEARTBEAT_TIMEOUT_MS = 1000_000; // 10s kein Heartbeat → entfernen (Zombie-Fallback)
+const CHECK_INTERVAL_MS = 5000_000;
 const ROOM_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 
 interface Player {

@@ -1,7 +1,6 @@
 import { usePresenceHandler } from "../Hooks/usePresenceHandler";
 import {useRoomGuard} from "../Hooks/useRoomGuard.tsx";
 import GameFlow, {type GamePhase} from "../Components/GameFlow.tsx";
-import Chat from "../Components/Frontend/Chat.tsx";
 
 export default function GamePage() {
     const { roomKey, playerId, loading } = useRoomGuard()
@@ -13,7 +12,7 @@ export default function GamePage() {
     return (
         <>
             <GameFlow phase={phase} />
-            <Chat />
+            {/*<Sidebar/>*/}
         </>
     );
 }

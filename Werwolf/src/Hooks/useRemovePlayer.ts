@@ -44,7 +44,10 @@ export const useRemovePlayer = ({ roomKey, playerId, isSelf = true }: props) => 
                 await update(ref(db, `rooms/${roomKey}/players/${newHostId}`), { host: true });
             }
 
-            socket.emit("leaveRoom", roomKey)
+            socket.emit("leaveRoom", {
+                roomKey,
+                targetPlayerId: playerId
+            });
             await remove(playerRef);
         } catch (err) {
             console.error('useRemovePlayer - Error:', err);
