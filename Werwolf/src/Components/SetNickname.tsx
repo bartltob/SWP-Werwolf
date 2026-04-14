@@ -143,6 +143,7 @@ export default function SetNickname({ newRoom,onClose }: Props) {
                         </label>
                         <div className="relative text-sm">
                             <TextInput
+                                autoFocus
                                 value={nickname}
                                 onChange={(e) => {
                                     setNickname(e.target.value);

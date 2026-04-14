@@ -11,6 +11,7 @@ import { Card, Divider, CornerOrnaments } from "./Frontend/Decorations";
 import PrimaryButton from "../Components/Frontend/PrimaryButton";
 import PlayerTile from "./Frontend/PlayerTile";
 import { useChatStore, CHAT_WIDTH } from "../store/chatStore";
+import {socket} from "../socket.ts";
 
 const redHex = "#e85d20";
 const purpleHex = "#9b59f5";
@@ -21,10 +22,13 @@ export default function WaitingRoom() {
     const [roomKey, setRoomKey] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<any[]>([]);
+    const [joined, setJoined] = useState(false);
     const { collapsed } = useChatStore();
+
 
     const playerId = sessionStorage.getItem("playerId");
     const currentPlayer = players.find((p) => String(p.id) === String(playerId)) || null;
+    console.log("Current Player:", currentPlayer);
 
     const { removePlayer } = useRemovePlayer({ roomKey: roomKey ?? "", playerId: playerId ?? "" });
     const navigate = useNavigate();
@@ -56,11 +60,31 @@ export default function WaitingRoom() {
         return () => unsubscribe();
     }, [roomKey, navigate]);
 
+
+    useEffect(() => {
+        if (!roomKey || joined || !currentPlayer) return;
+
+        socket.emit("joinRoom", {
+            roomId: roomKey,
+            name:currentPlayer?.nickname || "Unknown",
+            playerId
+        });
+
+        setJoined(true);
+    }, [roomKey,currentPlayer,joined]);
+
     useEffect(() => {
         const key = sessionStorage.getItem("roomKey");
         if (key) setRoomKey(key);
         else navigate("/");
     }, [navigate]);
+
+    useEffect(() => {
+        return () => {
+            // This fires on back button, route change, anything that unmounts this component
+            socket.emit("leaveRoom", roomKey);
+        };
+    }, [roomKey]);
 
     const handleCopy = async () => {
         if (!roomKey) return;
@@ -68,6 +92,12 @@ export default function WaitingRoom() {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
+
+    function handelLeave() {
+        removePlayer().then(() => navigate("/"));
+        socket.emit("leaveRoom", roomKey);
+    }
+
 
     return (
         <motion.div
@@ -118,7 +148,8 @@ export default function WaitingRoom() {
 
                             {/* Leave-Button */}
                             <PrimaryButton
-                                onClick={() => removePlayer().then(() => navigate("/"))}
+                                onClick={() => (handelLeave()
+                                )}
                                 accentHex={purpleHex}
                                 compact
                                 className={"w-auto"}
@@ -196,7 +227,9 @@ export default function WaitingRoom() {
                         </Card>
 
                         {/* Start button */}
-                        <PrimaryButton onClick={() => { /* TODO: Spielstart-Logik */ }} disabled={!currentPlayer?.host} accentHex={redHex} className={"w-full py-4 text-lg"}>
+                        <PrimaryButton  onClick={() => {
+                            socket.emit("startGame", roomKey)}}
+                            disabled={!currentPlayer?.host} accentHex={redHex} className={"w-full py-4 text-lg"}>
                             {currentPlayer?.host ? "Begin the Hunt →" : "Awaiting Host..."}
                         </PrimaryButton>
 

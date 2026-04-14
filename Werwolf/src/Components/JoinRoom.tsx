@@ -101,6 +101,7 @@ export default function JoinRoom({ onClose}: Props) {
                             Room Code
                         </label>
                         <TextInput
+                            autoFocus
                             value={roomCode}
                             onChange={(e) => {
                                 const numericValue = e.target.value.replace(/\D/g, "");

@@ -1,5 +1,6 @@
 import { ref, remove, get, update, onDisconnect } from 'firebase/database';
 import { db } from '../firebase-config';
+import {socket} from "../socket.ts";
 
 type props = {
     roomKey: string;
@@ -43,6 +44,7 @@ export const useRemovePlayer = ({ roomKey, playerId, isSelf = true }: props) => 
                 await update(ref(db, `rooms/${roomKey}/players/${newHostId}`), { host: true });
             }
 
+            socket.emit("leaveRoom", roomKey)
             await remove(playerRef);
         } catch (err) {
             console.error('useRemovePlayer - Error:', err);
