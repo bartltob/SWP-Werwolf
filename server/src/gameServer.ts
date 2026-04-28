@@ -21,6 +21,7 @@ const io = new Server(server, {
 
 let rooms: any = {};
 let cards: any[] = [];
+let icons: Record<string,string> = {};
 
 async function loadCards() {
     try {
@@ -32,6 +33,11 @@ async function loadCards() {
 
         const data = await res.json();
         cards = data.data;
+        icons = cards.reduce((acc, card) => {
+            acc[card.name] = card.icon; // assuming 'icon' field has the URL or identifier for the icon
+            return acc;
+        }, {} as Record<string, string>);
+        console.log(icons)
     } catch (err) {
         console.error("Error loading cards:", err);
     }
@@ -95,6 +101,11 @@ io.on("connection", (socket) => {
             console.log(`Spieler ${p.name} (${p.playerId}) bekommt Rolle: ${p.role}`);
         }
         io.to(roomId).emit("gameStarted");
+    });
+
+    socket.on("requestIcons", () => {
+        socket.emit("iconsUpdate", icons);
+        //this is being called from MainPage once for zustand
     });
 
     socket.on("updateDistribution", ({ roomId, distribution, playerId }) => {

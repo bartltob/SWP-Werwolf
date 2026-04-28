@@ -13,6 +13,7 @@ import PlayerTile from "./Frontend/PlayerTile";
 import { useChatStore, CHAT_WIDTH } from "../store/chatStore";
 import {socket} from "../socket.ts";
 import Sidebar from "./Sidebar.tsx";
+import {useIconStore} from "../store/iconStore.ts";
 
 
 const redHex = "#e85d20";
@@ -27,6 +28,8 @@ export default function WaitingRoom() {
     const [joined, setJoined] = useState(false);
     const [distribution, setDistribution] = useState<Record<string, number>>({});
     const { collapsed } = useChatStore();
+    const [OpenSettingsTrigger, setOpenSettingsTrigger] = useState<number>(0);
+    const {icons} = useIconStore();
 
 
     const playerId = sessionStorage.getItem("playerId");
@@ -62,6 +65,7 @@ export default function WaitingRoom() {
         });
         return () => unsubscribe();
     }, [roomKey, navigate]);
+
 
 
     useEffect(() => {
@@ -228,7 +232,8 @@ export default function WaitingRoom() {
 
                         {/* Roles panel — fixed height, scrollable */}
                         <div className="relative rounded-2xl flex flex-col overflow-hidden"
-                             style={{ border: `1px solid ${purpleHex}25`, background: "rgba(15,8,35,0.7)", flex: 1 }}>
+                             style={{ border: `1px solid ${purpleHex}25`, background: "rgba(15,8,35,0.7)", flex: 1 ,cursor:"pointer"}}
+                        onClick={() => setOpenSettingsTrigger(prev => prev + 1)}>
 
                             <div className="absolute top-0 left-0 right-0 h-px"
                                  style={{ background: `linear-gradient(90deg, transparent, ${purpleHex}55, transparent)` }} />
@@ -248,10 +253,6 @@ export default function WaitingRoom() {
                                     .map(([role, count]) => {
                                         const isWolf = role === "Werewolf";
                                         const accent = isWolf ? redHex : purpleHex;
-                                        const icons: Record<string, string> = {
-                                            Werewolf: "🐺", Seer: "👁", Witch: "🧙",
-                                            Hunter: "🏹", Cupid: "💘", Villager: "🌾",
-                                        };
                                         return (
                                             <motion.div
                                                 key={role}
@@ -300,7 +301,7 @@ export default function WaitingRoom() {
                 </Card>
 
             </motion.div>
-            <Sidebar distribution={distribution} playerCount={players.length} isHost={!!currentPlayer?.host} />
+            <Sidebar distribution={distribution} playerCount={players.length} isHost={!!currentPlayer?.host} openSettingsTrigger={OpenSettingsTrigger} />
         </motion.div>
 
     );

@@ -1,6 +1,7 @@
 import {motion} from "framer-motion";
 import {socket} from "../socket.ts";
 import {useEffect, useState} from "react";
+import {useIconStore} from "../store/iconStore.ts";
 
 const purpleHex = "#9b59f5";
 const amberHex = "#c8901a";
@@ -15,7 +16,9 @@ type Props = {
 
 export default function GameSettings({distribution, playerCount, isHost}: Props){
     const [customDist, setCustomDist] = useState<Record<string, number>>({});
-    const [allCards] = useState<string[]>(["Werewolf", "Seer", "Witch", "Hunter", "Cupid", "Villager"]);
+    const {icons} = useIconStore();
+    const allCardNames = Object.keys(icons);
+
 
     const playerId = sessionStorage.getItem("playerId");
     const roomKey = sessionStorage.getItem("roomKey");
@@ -64,14 +67,10 @@ export default function GameSettings({distribution, playerCount, isHost}: Props)
 
             {/* Card list — scrollable */}
             <div className="flex-1 flex flex-col gap-2 px-5 pb-4 overflow-y-auto min-h-0 chat-scroll">
-                {allCards.map((role) => {
+                {allCardNames.map((role) => {
                     const isWolf = role === "Werewolf";
                     const accent = isWolf ? redHex : purpleHex;
                     const count = customDist[role] ?? 0;
-                    const icons: Record<string, string> = {
-                        Werewolf: "🐺", Seer: "👁", Witch: "🧙",
-                        Hunter: "🏹", Cupid: "💘", Villager: "🌾",
-                    };
                     const isActive = count > 0;
 
                     return (

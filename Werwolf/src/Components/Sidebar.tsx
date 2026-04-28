@@ -15,6 +15,7 @@ type Props = {
     distribution: Record<string, number>;
     playerCount: number;
     isHost: boolean;
+    openSettingsTrigger: number;
 };
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -22,7 +23,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     {id: "settings", label: "Settings", icon: <Settings size={13}/>},
 ];
 
-export default function Sidebar({distribution, playerCount, isHost}: Props) {
+export default function Sidebar({distribution, playerCount, isHost, openSettingsTrigger}: Props) {
     const [activeTab, setActiveTab] = useState<Tab>("chat");
     const {collapsed, setCollapsed} = useChatStore();
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -32,6 +33,13 @@ export default function Sidebar({distribution, playerCount, isHost}: Props) {
         if (!collapsed && activeTab === "chat")
             bottomRef.current?.scrollIntoView({behavior: "smooth"});
     }, [collapsed, activeTab]);
+
+    useEffect(() => {
+        if (openSettingsTrigger === 0) return; // ignore initial load
+            setActiveTab("settings");
+            setCollapsed(false); // also open the sidebar if it's collapsed
+
+    }, [openSettingsTrigger]);
 
 
     return (

@@ -6,6 +6,7 @@ import ActionCard from "../Components/Frontend/ActionCard";
 import { OrnamentalDivider } from "../Components/Frontend/Decorations";
 import JoinRoom from "../Components/JoinRoom";
 import { socket } from "../socket";
+import {useIconStore} from "../store/iconStore.ts";
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MainPage() {
@@ -16,6 +17,15 @@ export default function MainPage() {
     useEffect(() => {
         const interval = setInterval(() => setTitleGlow(g => !g), 3000);
         return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        socket.on("iconsUpdate", (icons) => {
+            useIconStore.getState().setIcons(icons);
+        });
+
+        socket.emit("requestIcons"); // ask once on mount
+        return () => { socket.off("iconsUpdate"); };
     }, []);
 
     useEffect(() => {
